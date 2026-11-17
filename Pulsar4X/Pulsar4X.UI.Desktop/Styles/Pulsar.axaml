@@ -1,0 +1,39 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- Shared look for the Pulsar4X desktop UI. Colours live here so later theming is one file. -->
+  <Styles.Resources>
+    <SolidColorBrush x:Key="PulsarBackground" Color="#0E1117" />
+    <SolidColorBrush x:Key="PulsarPanel" Color="#161B22" />
+    <SolidColorBrush x:Key="PulsarBorder" Color="#2A313C" />
+    <SolidColorBrush x:Key="PulsarAccent" Color="#58A6FF" />
+    <SolidColorBrush x:Key="PulsarMuted" Color="#8B949E" />
+    <SolidColorBrush x:Key="PulsarError" Color="#F85149" />
+  </Styles.Resources>
+
+  <Style Selector="Window">
+    <Setter Property="Background" Value="{StaticResource PulsarBackground}" />
+  </Style>
+
+  <Style Selector="Border.panel">
+    <Setter Property="Background" Value="{StaticResource PulsarPanel}" />
+    <Setter Property="BorderBrush" Value="{StaticResource PulsarBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+  </Style>
+
+  <Style Selector="TextBlock.heading">
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource PulsarMuted}" />
+    <Setter Property="Margin" Value="12,10,12,6" />
+  </Style>
+
+  <Style Selector="TextBlock.muted">
+    <Setter Property="Foreground" Value="{StaticResource PulsarMuted}" />
+  </Style>
+
+  <Style Selector="TextBlock.date">
+    <Setter Property="FontSize" Value="18" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+</Styles>

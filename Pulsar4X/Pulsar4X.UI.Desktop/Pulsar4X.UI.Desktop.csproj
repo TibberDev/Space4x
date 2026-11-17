@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Avalonia desktop app and composition root: the only UI project that references the engine.
+       It hosts the engine in-process (Hosting/) and hands the view models an IGameClient. -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Pulsar4X.UI.Desktop</RootNamespace>
+    <AssemblyName>Pulsar4X.Desktop</AssemblyName>
+    <ApplicationIcon>..\Pulsar4X.Client\Resources\pulsaricon.ico</ApplicationIcon>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <!-- Avalonia 12's Roslyn generators/analyzers need compiler 4.14+, newer than the .NET 8 SDK's
+         4.11, so they can't load (CS9057). XAML compilation is an MSBuild task and still works; views
+         call AvaloniaXamlLoader.Load themselves. Re-enable once the repo moves to a newer SDK. -->
+    <AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
+    <NoWarn>$(NoWarn);CS9057</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.6" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="12.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GameEngine\GameEngine.csproj" />
+    <ProjectReference Include="..\Pulsar4X.UI.Core\Pulsar4X.UI.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Pulsar4X.UI.Tests" />
+  </ItemGroup>
+
+  <!-- Same as Pulsar4X.Client.Host: the engine reads mods from the user's app-data folder, so copy
+       the repo's game data there on build. -->
+  <PropertyGroup>
+    <AppDataPath Condition="'$(OS)' == 'Windows_NT'">$(APPDATA)\Pulsar4X\Pulsar4X</AppDataPath>
+    <AppDataPath Condition="'$(OS)' != 'Windows_NT'">$(HOME)/.local/share/Pulsar4X/Pulsar4X</AppDataPath>
+  </PropertyGroup>
+  <Target Name="CopyJsonData" AfterTargets="Build">
+    <ItemGroup>
+      <JsonDataFiles Include="..\GameData\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(JsonDataFiles)" DestinationFolder="$(AppDataPath)\Mods\%(RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+
+</Project>

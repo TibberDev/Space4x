@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Platform-neutral view models for the Avalonia UI. Talks to the game only through
+       Pulsar4X.Api (IGameClient), never the engine, and references no Avalonia packages, so
+       desktop and a future mobile head can share it unchanged. -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Pulsar4X.UI.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Pulsar4X.Api\Pulsar4X.Api.csproj" />
+  </ItemGroup>
+
+</Project>

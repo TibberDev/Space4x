@@ -1,0 +1,104 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:Pulsar4X.UI.Core.ViewModels"
+        xmlns:api="using:Pulsar4X.Api"
+        mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
+        x:Class="Pulsar4X.UI.Desktop.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Pulsar4X"
+        Width="1280" Height="800" MinWidth="800" MinHeight="500"
+        WindowStartupLocation="CenterScreen">
+
+  <DockPanel>
+    <!-- Top bar: faction, funds and the game clock -->
+    <Border Classes="panel" DockPanel.Dock="Top" BorderThickness="0,0,0,1" Padding="12,8">
+      <Grid ColumnDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+          <TextBlock Text="Pulsar4X" FontSize="18" FontWeight="Bold" Foreground="{StaticResource PulsarAccent}" />
+          <TextBlock Name="FactionNameText" Text="{Binding FactionName}" VerticalAlignment="Center" FontWeight="SemiBold" />
+          <TextBlock Name="FundsText" Text="{Binding FundsText}" VerticalAlignment="Center" Classes="muted" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center"
+                    IsVisible="{Binding HasGame}" DataContext="{Binding Time}" x:DataType="vm:TimeControlViewModel">
+          <StackPanel VerticalAlignment="Center" Margin="0,0,8,0">
+            <TextBlock Name="DateText" Classes="date" Text="{Binding DateText}" HorizontalAlignment="Right" />
+            <TextBlock Text="{Binding TimeText}" Classes="muted" FontSize="11" HorizontalAlignment="Right" />
+          </StackPanel>
+          <ComboBox Name="StepSizeBox" Width="120" VerticalAlignment="Center"
+                    ItemsSource="{x:Static vm:TimeControlViewModel.StepSizes}"
+                    SelectedItem="{Binding SelectedStepSize}"
+                    ToolTip.Tip="How far time advances each tick" />
+          <Button Name="StepButton" Command="{Binding StepCommand}" ToolTip.Tip="Advance one step">
+            <TextBlock Text="Step" />
+          </Button>
+          <Button Name="PlayPauseButton" Command="{Binding PlayPauseCommand}" MinWidth="80"
+                  HorizontalContentAlignment="Center" Classes.accent="{Binding IsPaused}">
+            <Panel>
+              <TextBlock Text="▶ Play" IsVisible="{Binding IsPaused}" />
+              <TextBlock Text="⏸ Pause" IsVisible="{Binding IsRunning}" />
+            </Panel>
+          </Button>
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <!-- Status bar -->
+    <Border Classes="panel" DockPanel.Dock="Bottom" BorderThickness="0,1,0,0" Padding="12,4">
+      <TextBlock Name="StatusText" Text="{Binding StatusText}" Classes="muted" FontSize="12" />
+    </Border>
+
+    <Panel>
+      <!-- Start screen, shown until a game is running -->
+      <StackPanel IsVisible="{Binding ShowStartScreen}" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" MaxWidth="480">
+        <TextBlock Text="Pulsar4X" FontSize="40" FontWeight="Bold" HorizontalAlignment="Center" Foreground="{StaticResource PulsarAccent}" />
+        <TextBlock Text="A 4X space simulation" Classes="muted" HorizontalAlignment="Center" />
+        <Button Name="NewGameButton" Command="{Binding StartGameCommand}" Classes="accent"
+                HorizontalAlignment="Center" Padding="24,10" Content="New game" />
+        <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsStarting}" Width="240" />
+        <TextBlock Name="ErrorText" Text="{Binding ErrorText}" IsVisible="{Binding ErrorText, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Foreground="{StaticResource PulsarError}" TextWrapping="Wrap" TextAlignment="Center" />
+      </StackPanel>
+
+      <!-- Game screen: known systems on the left, bodies of the selected system on the right -->
+      <Grid IsVisible="{Binding HasGame}" ColumnDefinitions="260,4,*">
+        <Border Grid.Column="0" Classes="panel" BorderThickness="0,0,1,0">
+          <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Classes="heading" Text="KNOWN SYSTEMS" />
+            <ListBox Name="SystemList" ItemsSource="{Binding Systems}" SelectedItem="{Binding SelectedSystem}" Background="Transparent">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="api:SystemSummary">
+                  <TextBlock Text="{Binding Name}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+          </DockPanel>
+        </Border>
+
+        <GridSplitter Grid.Column="1" Background="{StaticResource PulsarBorder}" ResizeDirection="Columns" />
+
+        <DockPanel Grid.Column="2">
+          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
+            <TextBlock Name="BodiesHeader" Classes="heading" Text="{Binding BodiesHeader}" VerticalAlignment="Center" />
+            <CheckBox Grid.Column="1" Name="ShowMinorBodiesBox" Content="Show asteroids and comets"
+                      IsChecked="{Binding ShowMinorBodies}" Margin="12,4" />
+          </Grid>
+          <DataGrid Name="BodiesGrid" ItemsSource="{Binding Bodies}" IsReadOnly="True"
+                    CanUserSortColumns="False" GridLinesVisibility="Horizontal"
+                    HeadersVisibility="Column" Margin="8,0,8,8">
+            <DataGrid.Columns>
+              <DataGridTextColumn Header="Name" Width="2*" Binding="{Binding DisplayName}" x:DataType="vm:BodyRowViewModel" />
+              <DataGridTextColumn Header="Type" Width="*" Binding="{Binding KindText}" x:DataType="vm:BodyRowViewModel" />
+              <DataGridTextColumn Header="Orbits" Width="*" Binding="{Binding ParentName}" x:DataType="vm:BodyRowViewModel" />
+              <DataGridTextColumn Header="Distance" Width="*" Binding="{Binding DistanceText}" x:DataType="vm:BodyRowViewModel" />
+              <DataGridTextColumn Header="Period" Width="*" Binding="{Binding PeriodText}" x:DataType="vm:BodyRowViewModel" />
+              <DataGridTextColumn Header="Population" Width="*" Binding="{Binding PopulationText}" x:DataType="vm:BodyRowViewModel" />
+            </DataGrid.Columns>
+          </DataGrid>
+        </DockPanel>
+      </Grid>
+    </Panel>
+  </DockPanel>
+</Window>

@@ -1,3 +1,4 @@
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.NUnit;
@@ -90,12 +91,92 @@ public class MainWindowTests
         Assert.That(systemList.ItemCount, Is.EqualTo(vm.Systems.Count).And.GreaterThan(0));
         Assert.That(systemList.SelectedItem, Is.SameAs(vm.SelectedSystem));
 
+        // The map is the default tab; the body table is the second.
+        Assert.That(Find<TabControl>(window, "MainTabs").SelectedIndex, Is.EqualTo(0));
+        vm.SelectedTab = 1;
+        Pump();
+
         var grid = Find<DataGrid>(window, "BodiesGrid");
         Assert.That(grid.IsEffectivelyVisible, Is.True);
         Assert.That(grid.GetVisualDescendants().OfType<DataGridRow>().Count(), Is.GreaterThan(0),
             "the body table rendered no rows");
 
-        Capture(window, "02-game-screen");
+        Capture(window, "02-bodies-table");
+        window.Close();
+    }
+
+    private static async Task<(MainWindow Window, MainWindowViewModel Vm)> OpenRunningGame()
+    {
+        var (window, vm) = Open(new SharedGame.Launcher());
+        await vm.StartGameCommand.ExecuteAsync(null);
+        for (int i = 0; i < 100 && vm.Map.Objects.Count == 0; i++)
+        {
+            vm.Tick();
+            Pump();
+            await Task.Delay(20);
+        }
+        vm.Tick();
+        Pump();
+        return (window, vm);
+    }
+
+    [AvaloniaTest]
+    public async Task Map_tab_draws_the_system_with_scale_bar()
+    {
+        var (window, vm) = await OpenRunningGame();
+
+        var map = Find<Pulsar4X.UI.Desktop.Controls.StarMapControl>(window, "StarMap");
+        Assert.That(map.IsEffectivelyVisible, Is.True);
+        Assert.That(map.Bounds.Width, Is.GreaterThan(400));
+        Assert.That(vm.Map.Camera.ViewportWidth, Is.EqualTo(map.Bounds.Width).Within(0.5), "the map camera should match the control size");
+        Assert.That(Find<TextBlock>(window, "ScaleText").Text, Does.EndWith("AU"));
+        Assert.That(Find<Border>(window, "SelectionPanel").IsEffectivelyVisible, Is.False);
+
+        Capture(window, "04-map-system");
+        window.Close();
+    }
+
+    [AvaloniaTest]
+    public async Task Clicking_a_planet_on_the_map_opens_its_panel()
+    {
+        var (window, vm) = await OpenRunningGame();
+        var map = Find<Pulsar4X.UI.Desktop.Controls.StarMapControl>(window, "StarMap");
+
+        var earth = vm.Map.Objects.First(o => o.Name == "Earth");
+        var s = vm.Map.Camera.WorldToScreen(earth.Position);
+        var inWindow = map.TranslatePoint(new Avalonia.Point(s.X, s.Y), window)!.Value;
+        window.MouseDown(inWindow, Avalonia.Input.MouseButton.Left);
+        window.MouseUp(inWindow, Avalonia.Input.MouseButton.Left);
+        vm.Tick();
+        Pump();
+
+        Assert.That(vm.Map.SelectedId, Is.EqualTo(earth.Id), "a real click on Earth should select it");
+        Assert.That(Find<Border>(window, "SelectionPanel").IsEffectivelyVisible, Is.True);
+        Assert.That(Find<TextBlock>(window, "SelectionTitle").Text, Is.EqualTo("Earth"));
+        Capture(window, "05-map-earth-selected");
+
+        // Focus on Earth: Luna and its orbit come into view.
+        vm.Map.Focus(earth);
+        vm.Tick();
+        Pump();
+        Assert.That(vm.Map.IsVisible(vm.Map.Objects.First(o => o.Name == "Luna")), Is.True);
+        Capture(window, "06-map-earth-focused");
+
+        // Drag pans the map and stops following.
+        var centreBefore = vm.Map.Camera.Center;
+        var start = map.TranslatePoint(new Avalonia.Point(300, 300), window)!.Value;
+        window.MouseDown(start, Avalonia.Input.MouseButton.Left);
+        window.MouseMove(start + new Avalonia.Point(60, 0));
+        window.MouseMove(start + new Avalonia.Point(120, 0));
+        window.MouseUp(start + new Avalonia.Point(120, 0), Avalonia.Input.MouseButton.Left);
+        Assert.That(vm.Map.Camera.Center, Is.Not.EqualTo(centreBefore));
+        Assert.That(vm.Map.IsFollowing, Is.False);
+        Assert.That(vm.Map.SelectedId, Is.EqualTo(earth.Id), "a drag must not change the selection");
+
+        // Mouse wheel zooms.
+        double before = vm.Map.Camera.MetresPerPixel;
+        window.MouseWheel(start, new Avalonia.Vector(0, 2));
+        Assert.That(vm.Map.Camera.MetresPerPixel, Is.LessThan(before));
         window.Close();
     }
 

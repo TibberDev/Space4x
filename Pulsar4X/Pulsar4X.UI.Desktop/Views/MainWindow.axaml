@@ -4,6 +4,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="using:Pulsar4X.UI.Core.ViewModels"
         xmlns:api="using:Pulsar4X.Api"
+        xmlns:map="using:Pulsar4X.UI.Core.Map"
+        xmlns:controls="using:Pulsar4X.UI.Desktop.Controls"
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
         x:Class="Pulsar4X.UI.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -79,25 +81,91 @@
 
         <GridSplitter Grid.Column="1" Background="{StaticResource PulsarBorder}" ResizeDirection="Columns" />
 
-        <DockPanel Grid.Column="2">
-          <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
-            <TextBlock Name="BodiesHeader" Classes="heading" Text="{Binding BodiesHeader}" VerticalAlignment="Center" />
-            <CheckBox Grid.Column="1" Name="ShowMinorBodiesBox" Content="Show asteroids and comets"
-                      IsChecked="{Binding ShowMinorBodies}" Margin="12,4" />
-          </Grid>
-          <DataGrid Name="BodiesGrid" ItemsSource="{Binding Bodies}" IsReadOnly="True"
-                    CanUserSortColumns="False" GridLinesVisibility="Horizontal"
-                    HeadersVisibility="Column" Margin="8,0,8,8">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Name" Width="2*" Binding="{Binding DisplayName}" x:DataType="vm:BodyRowViewModel" />
-              <DataGridTextColumn Header="Type" Width="*" Binding="{Binding KindText}" x:DataType="vm:BodyRowViewModel" />
-              <DataGridTextColumn Header="Orbits" Width="*" Binding="{Binding ParentName}" x:DataType="vm:BodyRowViewModel" />
-              <DataGridTextColumn Header="Distance" Width="*" Binding="{Binding DistanceText}" x:DataType="vm:BodyRowViewModel" />
-              <DataGridTextColumn Header="Period" Width="*" Binding="{Binding PeriodText}" x:DataType="vm:BodyRowViewModel" />
-              <DataGridTextColumn Header="Population" Width="*" Binding="{Binding PopulationText}" x:DataType="vm:BodyRowViewModel" />
-            </DataGrid.Columns>
-          </DataGrid>
-        </DockPanel>
+        <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
+          <!-- Centre: system map and body table, sharing one selection -->
+          <TabControl Name="MainTabs" SelectedIndex="{Binding SelectedTab}" Padding="0" Margin="0">
+            <TabItem Header="Map" Name="MapTab" FontSize="14">
+              <Panel>
+                <controls:StarMapControl Name="StarMap" DataContext="{Binding Map}" />
+
+                <!-- Map toolbar -->
+                <StackPanel DataContext="{Binding Map}" x:DataType="map:StarMapViewModel"
+                            Orientation="Horizontal" Spacing="6" Margin="12" VerticalAlignment="Top" HorizontalAlignment="Left">
+                  <Border Classes="mapchip"><TextBlock Text="{Binding SystemName}" FontWeight="SemiBold" /></Border>
+                  <Button Classes="map" Command="{Binding FitSystemCommand}" ToolTip.Tip="Show the whole system (Home)">Fit</Button>
+                  <Button Classes="map" Command="{Binding ZoomInCommand}" ToolTip.Tip="Zoom in (+)">+</Button>
+                  <Button Classes="map" Command="{Binding ZoomOutCommand}" ToolTip.Tip="Zoom out (−)">−</Button>
+                  <Button Classes="map" Name="CentreButton" Command="{Binding CentreOnSelectedCommand}" ToolTip.Tip="Centre on and follow the selection (F, or double-click)">Centre</Button>
+                  <Border Classes="mapchip" IsVisible="{Binding IsFollowing}"><TextBlock Text="Following" Foreground="{StaticResource PulsarAccent}" /></Border>
+                </StackPanel>
+
+                <CheckBox Name="MapMinorBodiesBox" Content="Asteroids and comets" IsChecked="{Binding ShowMinorBodies}"
+                          Margin="12" VerticalAlignment="Top" HorizontalAlignment="Right" />
+
+                <!-- Scale bar -->
+                <StackPanel DataContext="{Binding Map}" x:DataType="map:StarMapViewModel"
+                            Margin="16" VerticalAlignment="Bottom" HorizontalAlignment="Left" Spacing="2">
+                  <TextBlock Name="ScaleText" Text="{Binding ScaleText}" FontSize="11" Classes="muted" />
+                  <Border Width="{Binding ScalePixels}" Height="4" HorizontalAlignment="Left"
+                          BorderBrush="{StaticResource PulsarMuted}" BorderThickness="1,0,1,1" />
+                </StackPanel>
+
+                <TextBlock Text="Drag to pan · wheel to zoom · click to select · double-click to follow"
+                           Classes="muted" FontSize="11" Margin="16" VerticalAlignment="Bottom" HorizontalAlignment="Right" />
+              </Panel>
+            </TabItem>
+
+            <TabItem Header="Bodies" Name="BodiesTab" FontSize="14">
+              <DockPanel>
+                <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
+                  <TextBlock Name="BodiesHeader" Classes="heading" Text="{Binding BodiesHeader}" VerticalAlignment="Center" />
+                  <CheckBox Grid.Column="1" Name="ShowMinorBodiesBox" Content="Show asteroids and comets"
+                            IsChecked="{Binding ShowMinorBodies}" Margin="12,4" />
+                </Grid>
+                <DataGrid Name="BodiesGrid" ItemsSource="{Binding Bodies}" SelectedItem="{Binding SelectedBodyRow}"
+                          IsReadOnly="True" SelectionMode="Single"
+                          CanUserSortColumns="False" GridLinesVisibility="Horizontal"
+                          HeadersVisibility="Column" Margin="8,0,8,8">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Width="2*" Binding="{Binding DisplayName}" x:DataType="vm:BodyRowViewModel" />
+                    <DataGridTextColumn Header="Type" Width="*" Binding="{Binding KindText}" x:DataType="vm:BodyRowViewModel" />
+                    <DataGridTextColumn Header="Orbits" Width="*" Binding="{Binding ParentName}" x:DataType="vm:BodyRowViewModel" />
+                    <DataGridTextColumn Header="Distance" Width="*" Binding="{Binding DistanceText}" x:DataType="vm:BodyRowViewModel" />
+                    <DataGridTextColumn Header="Period" Width="*" Binding="{Binding PeriodText}" x:DataType="vm:BodyRowViewModel" />
+                    <DataGridTextColumn Header="Population" Width="*" Binding="{Binding PopulationText}" x:DataType="vm:BodyRowViewModel" />
+                  </DataGrid.Columns>
+                </DataGrid>
+              </DockPanel>
+            </TabItem>
+          </TabControl>
+
+          <!-- Right: facts about the selected body or ship -->
+          <Border Grid.Column="1" Name="SelectionPanel" Classes="panel" BorderThickness="1,0,0,0" Width="300"
+                  IsVisible="{Binding HasSelection}">
+            <DockPanel DataContext="{Binding Selection}" x:DataType="vm:SelectionInfo" Margin="16,12">
+              <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="2">
+                  <TextBlock Name="SelectionTitle" Text="{Binding Title}" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap" />
+                  <TextBlock Text="{Binding Subtitle}" Classes="muted" TextWrapping="Wrap" />
+                </StackPanel>
+                <Button Grid.Column="1" Classes="map" VerticalAlignment="Top" ToolTip.Tip="Clear selection"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ClearSelectionCommand}">✕</Button>
+              </Grid>
+              <Button DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,12,0,0"
+                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowOnMapCommand}">Show on map</Button>
+              <ItemsControl ItemsSource="{Binding Rows}" Margin="0,16,0,0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:InfoRow">
+                    <Grid ColumnDefinitions="120,*" Margin="0,3">
+                      <TextBlock Text="{Binding Label}" Classes="muted" />
+                      <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </DockPanel>
+          </Border>
+        </Grid>
       </Grid>
     </Panel>
   </DockPanel>

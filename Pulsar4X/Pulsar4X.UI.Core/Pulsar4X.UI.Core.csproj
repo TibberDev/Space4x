@@ -15,7 +15,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Pulsar4X.UI.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Pulsar4X.Api\Pulsar4X.Api.csproj" />
+    <!-- Pure orbital math (no engine): propagates OrbitView elements between server pushes. -->
+    <ProjectReference Include="..\Pulsar4X.OrbitalMath\Pulsar4X.Orbital.csproj" />
   </ItemGroup>
 
 </Project>

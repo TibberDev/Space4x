@@ -3,13 +3,16 @@ using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Pulsar4X.Api;
+using Pulsar4X.UI.Core.Map;
 
 namespace Pulsar4X.UI.Core.ViewModels;
 
 /// <summary>
 /// The app shell: starts a game through <see cref="IGameLauncher"/>, then mirrors the client's galaxy
 /// model into bindable state once per frame (<see cref="Tick"/>): the clock, the faction, the list of
-/// known systems and the bodies of the selected one.
+/// known systems, the star map and body table of the selected system, and the selected body.
+/// The map owns the selection (<see cref="StarMapViewModel.SelectedId"/>); the table and the info
+/// panel follow it.
 /// </summary>
 public sealed partial class MainWindowViewModel : ObservableObject
 {
@@ -19,7 +22,14 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel(IGameLauncher launcher)
     {
         _launcher = launcher;
+        Map.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(StarMapViewModel.SelectedId))
+                OnMapSelectionChanged();
+        };
     }
+
+    public StarMapViewModel Map { get; } = new();
 
     /// <summary>The connected game client, or null before a game has started.</summary>
     public IGameClient? Client { get; private set; }
@@ -47,11 +57,64 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     [ObservableProperty] private SystemSummary? _selectedSystem;
 
+    /// <summary>The table row of the selected body (null when the selection is not in the table).</summary>
+    [ObservableProperty] private BodyRowViewModel? _selectedBodyRow;
+
+    /// <summary>Facts about the selected body or ship for the side panel; null when nothing is selected.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasSelection))]
+    private SelectionInfo? _selection;
+
+    public bool HasSelection => Selection != null;
+
+    /// <summary>0 = map, 1 = body table.</summary>
+    [ObservableProperty] private int _selectedTab;
+
+    private bool _syncingSelection;
+
+    partial void OnSelectedBodyRowChanged(BodyRowViewModel? value)
+    {
+        if (_syncingSelection || value == null) return;
+        Map.Select(value.Id);
+    }
+
+    private void OnMapSelectionChanged()
+    {
+        _syncingSelection = true;
+        try
+        {
+            SelectedBodyRow = Map.SelectedId is { } id ? Bodies.FirstOrDefault(b => b.Id == id) : null;
+        }
+        finally
+        {
+            _syncingSelection = false;
+        }
+        RefreshSelection();
+    }
+
+    private void RefreshSelection()
+    {
+        var system = Client != null && SelectedSystem != null ? Client.Galaxy.GetSystem(SelectedSystem.SystemId) : null;
+        Selection = system != null && Map.SelectedId is { } id ? SelectionInfo.From(system, id) : null;
+    }
+
+    [RelayCommand]
+    private void ClearSelection() => Map.Select(null);
+
+    [RelayCommand]
+    private void ShowOnMap()
+    {
+        SelectedTab = 0;
+        Map.CentreOnSelectedCommand.Execute(null);
+    }
+
     /// <summary>Whether the body table lists asteroids and comets. Off by default: Sol alone has hundreds.</summary>
     [ObservableProperty] private bool _showMinorBodies;
 
     partial void OnShowMinorBodiesChanged(bool value)
     {
+        // One toggle for both views, so anything in the table can also be selected on the map.
+        Map.ShowMinorBodies = value;
         if (Client is { } client) RefreshBodies(client.Galaxy, force: true);
     }
 
@@ -103,6 +166,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshFaction(client.Galaxy);
         RefreshSystems(client.Galaxy);
         RefreshBodies(client.Galaxy, force: false);
+        Map.Update(SelectedSystem is { } s ? client.Galaxy.GetSystem(s.SystemId) : null, client.Galaxy.Time.GameDateTime);
     }
 
     partial void OnSelectedSystemChanged(SystemSummary? value)
@@ -156,6 +220,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Bodies.Clear();
         foreach (var row in rows)
             Bodies.Add(row);
+        OnMapSelectionChanged(); // re-select the row and refresh the panel after a rebuild
 
         int total = SystemBodies.CountBodies(system);
         BodiesHeader = rows.Count == total

@@ -109,6 +109,7 @@ namespace Pulsar4X.Colonies
             blobs.Add(new TeamsHousedDB());
             blobs.Add(new ComponentInstancesDB()); //installations get added to the componentInstancesDB
             blobs.Add(new InfrastructureDB()); //capacity gets summed from installations as they're added
+            blobs.Add(new ColonyAutomationDB()); //what the administrator may run on their own
             blobs.Add(new Pulsar4X.Energy.ColonyPowerDB()); //the grid gets summed from installations as they're added
 
             Entity colonyEntity = Entity.Create();
@@ -405,6 +406,7 @@ namespace Pulsar4X.Colonies
             blobs.Add(new TeamsHousedDB());
             blobs.Add(new ComponentInstancesDB()); //installations get added to the componentInstancesDB
             blobs.Add(new InfrastructureDB()); //capacity gets summed from installations as they're added
+            blobs.Add(new ColonyAutomationDB()); //what the administrator may run on their own
             blobs.Add(new Pulsar4X.Energy.ColonyPowerDB()); //the grid gets summed from installations as they're added
 
             Entity colonyEntity = Entity.Create();

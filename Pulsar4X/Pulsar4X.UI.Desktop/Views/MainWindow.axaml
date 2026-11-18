@@ -147,6 +147,10 @@
             <TabItem Header="People" Name="PeopleTab" FontSize="14">
               <views:PeopleView Name="PeopleView" DataContext="{Binding People}" />
             </TabItem>
+
+            <TabItem Header="{Binding Inbox.Header}" Name="InboxTab" FontSize="14">
+              <views:InboxView Name="InboxView" DataContext="{Binding Inbox}" />
+            </TabItem>
           </TabControl>
 
           <!-- Right: facts about the selected body or ship -->

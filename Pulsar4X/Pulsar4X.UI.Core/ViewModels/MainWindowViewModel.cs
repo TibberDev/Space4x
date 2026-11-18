@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Pulsar4X.Api;
 using Pulsar4X.UI.Core.Colonies;
+using Pulsar4X.UI.Core.Inbox;
 using Pulsar4X.UI.Core.People;
 using Pulsar4X.UI.Core.Map;
 
@@ -29,6 +30,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : Task.FromResult(CommandResult.Reject("No game is running."));
         Colonies = new ColoniesViewModel(submit);
         People = new PeopleViewModel(submit);
+        Inbox = new InboxViewModel(submit);
         Map.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(StarMapViewModel.SelectedId))
@@ -42,7 +44,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public PeopleViewModel People { get; }
 
-    public const int MapTab = 0, BodiesTab = 1, ColoniesTab = 2, PeopleTab = 3;
+    public InboxViewModel Inbox { get; }
+
+    public const int MapTab = 0, BodiesTab = 1, ColoniesTab = 2, PeopleTab = 3, InboxTab = 4;
+
+    /// <summary>The Administrator section of the colony screen.</summary>
+    public const int AdministratorSection = 4;
 
     /// <summary>The connected game client, or null before a game has started.</summary>
     public IGameClient? Client { get; private set; }
@@ -80,7 +87,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasSelection => Selection != null;
 
-    /// <summary>0 = map, 1 = body table, 2 = colonies, 3 = people.</summary>
+    /// <summary>0 = map, 1 = body table, 2 = colonies, 3 = people, 4 = inbox.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowSelectionPanel), nameof(ShowSystemList))]
     private int _selectedTab;
@@ -100,6 +107,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (value == ColoniesTab && Client is { } client) Colonies.Update(client.Galaxy);
         if (value == PeopleTab && Client is { } c) People.Update(c.Galaxy);
+    }
+
+    /// <summary>From the inbox: open the suggestion's colony on its Administrator section.</summary>
+    [RelayCommand]
+    private void OpenSuggestionColony(SuggestionRow row)
+    {
+        if (Client is not { } client) return;
+        SelectedTab = ColoniesTab;
+        if (Colonies.Open(row.ColonyId, client.Galaxy))
+            Colonies.SelectedSection = AdministratorSection;
     }
 
     /// <summary>From a colony's summary: open People on the administrators, with that colony's post picked.</summary>
@@ -221,6 +238,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Map.Update(SelectedSystem is { } s ? client.Galaxy.GetSystem(s.SystemId) : null, client.Galaxy.Time.GameDateTime);
         if (SelectedTab == ColoniesTab) Colonies.Update(client.Galaxy);
         if (SelectedTab == PeopleTab) People.Update(client.Galaxy);
+        Inbox.Update(client.Galaxy); // every frame: the tab header counts what waits
     }
 
     partial void OnSelectedSystemChanged(SystemSummary? value)

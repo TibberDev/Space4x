@@ -84,6 +84,11 @@ namespace Pulsar4X.Engine.Api
                 [typeof(SetFlagshipCommand)] = TranslateSetFlagship,
                 [typeof(AssignCaptainCommand)] = TranslateAssignCaptain,
                 [typeof(AssignAdministratorCommand)] = TranslateAssignAdministrator,
+                [typeof(SetColonyAutomationCommand)] = TranslateSetColonyAutomation,
+                [typeof(SetColonyPrioritiesCommand)] = TranslateSetColonyPriorities,
+                [typeof(SetStockTargetCommand)] = TranslateSetStockTarget,
+                [typeof(ApproveSuggestionCommand)] = TranslateApproveSuggestion,
+                [typeof(DismissSuggestionCommand)] = TranslateDismissSuggestion,
                 [typeof(HireCandidateCommand)] = TranslateHireCandidate,
                 [typeof(TrainAcademyClassCommand)] = TranslateTrainAcademyClass,
                 [typeof(AcademyCommandCourseCommand)] = TranslateAcademyCommandCourse,
@@ -2601,6 +2606,80 @@ namespace Pulsar4X.Engine.Api
                 return true;
             }
             return false;
+        }
+
+        // ----- colony automation (vertical slice step 3) -----
+
+        /// <summary>The colony's automation settings, added for a colony from a save made before them.</summary>
+        static ColonyAutomationDB? Automation(Entity colony)
+        {
+            if (!colony.HasDataBlob<ColonyInfoDB>())
+                return null;
+            if (!colony.TryGetDataBlob<ColonyAutomationDB>(out var automation))
+            {
+                automation = new ColonyAutomationDB();
+                colony.SetDataBlob(automation);
+            }
+            return automation;
+        }
+
+        private CommandResult TranslateSetColonyAutomation(Entity faction, Entity commanded, GameCommand command)
+        {
+            var set = (SetColonyAutomationCommand)command;
+            if (Automation(commanded) is not { } automation)
+                return CommandResult.Reject("Only a colony has an administrator to automate.");
+            if (set.Area == AutomationArea.Construction)
+                automation.Construction = set.Level;
+            else
+                automation.Production = set.Level;
+            ColonyAdministration.Review(commanded, commanded.StarSysDateTime);
+            return CommandResult.Ok(Guid.NewGuid().ToString("N"));
+        }
+
+        private CommandResult TranslateSetColonyPriorities(Entity faction, Entity commanded, GameCommand command)
+        {
+            var set = (SetColonyPrioritiesCommand)command;
+            if (Automation(commanded) is not { } automation)
+                return CommandResult.Reject("Only a colony has an administrator to automate.");
+            if (set.Priorities == null || set.Priorities.Count != ColonyAutomationDB.DefaultPriorities.Length
+                || set.Priorities.Distinct().Count() != set.Priorities.Count)
+                return CommandResult.Reject("List each need once.");
+            automation.Priorities = set.Priorities.ToList();
+            ColonyAdministration.Review(commanded, commanded.StarSysDateTime);
+            return CommandResult.Ok(Guid.NewGuid().ToString("N"));
+        }
+
+        private CommandResult TranslateSetStockTarget(Entity faction, Entity commanded, GameCommand command)
+        {
+            var set = (SetStockTargetCommand)command;
+            if (Automation(commanded) is not { } automation)
+                return CommandResult.Reject("Only a colony keeps stock targets.");
+            if (set.Target < 0)
+                return CommandResult.Reject("A target cannot be negative.");
+            if (!faction.TryGetDataBlob<FactionInfoDB>(out var info) || !info.IndustryDesigns.ContainsKey(set.DesignId))
+                return CommandResult.Reject($"Design {set.DesignId} not found.");
+            if (set.Target == 0)
+                automation.StockTargets.Remove(set.DesignId);
+            else
+                automation.StockTargets[set.DesignId] = set.Target;
+            ColonyAdministration.Review(commanded, commanded.StarSysDateTime);
+            return CommandResult.Ok(Guid.NewGuid().ToString("N"));
+        }
+
+        private CommandResult TranslateApproveSuggestion(Entity faction, Entity commanded, GameCommand command)
+        {
+            var approve = (ApproveSuggestionCommand)command;
+            return ColonyAdministration.Approve(commanded, approve.SuggestionId, commanded.StarSysDateTime, out var reason)
+                ? CommandResult.Ok(Guid.NewGuid().ToString("N"))
+                : CommandResult.Reject(reason);
+        }
+
+        private CommandResult TranslateDismissSuggestion(Entity faction, Entity commanded, GameCommand command)
+        {
+            var dismiss = (DismissSuggestionCommand)command;
+            return ColonyAdministration.Dismiss(commanded, dismiss.SuggestionId, commanded.StarSysDateTime)
+                ? CommandResult.Ok(Guid.NewGuid().ToString("N"))
+                : CommandResult.Reject("That suggestion is gone.");
         }
 
         private CommandResult TranslateAddToConstructionQueue(Entity faction, Entity commanded, GameCommand command)

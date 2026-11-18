@@ -387,6 +387,153 @@
             </StackPanel>
           </ScrollViewer>
         </TabItem>
+
+        <!-- ============ Administrator ============ -->
+        <TabItem Header="Administrator" Name="AdministratorTab">
+          <ScrollViewer DataContext="{Binding Administrator}" x:DataType="col:ColonyAutomationViewModel">
+            <StackPanel Margin="8,4,16,16" Spacing="12">
+              <Border Classes="card">
+                <Grid ColumnDefinitions="*,Auto">
+                  <StackPanel Spacing="2">
+                    <TextBlock Classes="cardtitle" Text="Administrator" />
+                    <TextBlock Name="AdministratorName" Text="{Binding AdministratorText}" FontWeight="SemiBold"
+                               Classes.warning="{Binding !HasAdministrator}" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding ReviewText}" Classes="muted" FontSize="12" IsVisible="{Binding HasAdministrator}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="small" Content="Choose administrator…" VerticalAlignment="Center"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChooseAdministratorCommand}" />
+                </Grid>
+              </Border>
+
+              <WrapPanel ItemSpacing="12" LineSpacing="12">
+                <Border Classes="card" Width="340">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="cardtitle" Text="What they run" />
+                    <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                               Text="Manual: nothing happens unless you order it. Advise: they propose and you approve in the Inbox. Auto: they act and log why." />
+                    <Grid ColumnDefinitions="110,*" RowDefinitions="Auto,Auto" RowSpacing="8">
+                      <TextBlock Text="Construction" VerticalAlignment="Center" />
+                      <ComboBox Name="ConstructionLevel" Grid.Column="1" HorizontalAlignment="Stretch"
+                                ItemsSource="{Binding Levels}" SelectedItem="{Binding Construction}" />
+                      <TextBlock Grid.Row="1" Text="Production" VerticalAlignment="Center" />
+                      <ComboBox Name="ProductionLevel" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Stretch"
+                                ItemsSource="{Binding Levels}" SelectedItem="{Binding Production}" />
+                    </Grid>
+                  </StackPanel>
+                </Border>
+
+                <Border Classes="card" Width="300">
+                  <StackPanel Spacing="8">
+                    <TextBlock Classes="cardtitle" Text="Construction priorities" />
+                    <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                               Text="The order needs are tackled in. A disloyal administrator may follow their own sense of urgency." />
+                    <ItemsControl Name="PriorityList" ItemsSource="{Binding Priorities}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="col:PriorityRow">
+                          <Grid ColumnDefinitions="24,*,Auto" Classes="tablerow">
+                            <TextBlock Text="{Binding RankText}" Classes="muted" />
+                            <TextBlock Grid.Column="1" Text="{Binding Name}" />
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="2">
+                              <Button Classes="icon" Content="↑" ToolTip.Tip="Raise"
+                                      Command="{Binding $parent[ItemsControl].((col:ColonyAutomationViewModel)DataContext).RaisePriorityCommand}" CommandParameter="{Binding}" />
+                              <Button Classes="icon" Content="↓" ToolTip.Tip="Lower"
+                                      Command="{Binding $parent[ItemsControl].((col:ColonyAutomationViewModel)DataContext).LowerPriorityCommand}" CommandParameter="{Binding}" />
+                            </StackPanel>
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </WrapPanel>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="cardtitle" Text="Stock targets" />
+                  <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                             Text="Keep this many on hand. With Production on Advise or Auto, the administrator queues factory work to make up the gap." />
+                  <Grid ColumnDefinitions="2*,*,*,*,Auto" Classes="tablehead" IsVisible="{Binding HasTargets}">
+                    <TextBlock Text="Item" />
+                    <TextBlock Grid.Column="1" Text="Target" />
+                    <TextBlock Grid.Column="2" Text="On hand" />
+                    <TextBlock Grid.Column="3" Text="Queued" />
+                  </Grid>
+                  <ItemsControl Name="TargetList" ItemsSource="{Binding Targets}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:StockTargetRow">
+                        <Grid ColumnDefinitions="2*,*,*,*,Auto" Classes="tablerow">
+                          <TextBlock Text="{Binding Name}" />
+                          <TextBlock Grid.Column="1" Text="{Binding TargetText}" />
+                          <TextBlock Grid.Column="2" Text="{Binding StockText}" Classes.warning="{Binding IsShort}" />
+                          <TextBlock Grid.Column="3" Text="{Binding QueuedText}" Classes="muted" />
+                          <Button Grid.Column="4" Classes="icon danger" Content="✕" ToolTip.Tip="Clear target"
+                                  Command="{Binding $parent[ItemsControl].((col:ColonyAutomationViewModel)DataContext).ClearTargetCommand}" CommandParameter="{Binding}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <ComboBox Name="TargetPicker" Width="260" PlaceholderText="Item to keep on hand"
+                              ItemsSource="{Binding TargetOptions}" SelectedItem="{Binding NewTargetOption}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="col:ConstructibleOption">
+                          <TextBlock Text="{Binding Name}" />
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <NumericUpDown Name="TargetCount" Width="130" Minimum="0" Maximum="65535" Increment="1" FormatString="0"
+                                   Value="{Binding NewTargetCount}" />
+                    <Button Name="SetTargetButton" Content="Set target" Command="{Binding SetTargetCommand}" />
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card" IsVisible="{Binding HasSuggestions}">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="cardtitle" Text="Waiting for you" />
+                  <ItemsControl Name="ColonySuggestions" ItemsSource="{Binding Suggestions}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:SuggestionRow">
+                        <Grid ColumnDefinitions="*,Auto" Classes="tablerow">
+                          <StackPanel Spacing="2">
+                            <TextBlock Text="{Binding Text}" FontWeight="SemiBold" />
+                            <TextBlock Text="{Binding Reason}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                          </StackPanel>
+                          <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Button Content="Approve" Classes="small"
+                                    Command="{Binding $parent[ItemsControl].((col:ColonyAutomationViewModel)DataContext).ApproveCommand}" CommandParameter="{Binding}" />
+                            <Button Content="Dismiss" Classes="small"
+                                    Command="{Binding $parent[ItemsControl].((col:ColonyAutomationViewModel)DataContext).DismissCommand}" CommandParameter="{Binding}" />
+                          </StackPanel>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="cardtitle" Text="Decisions and why" />
+                  <TextBlock Classes="muted" FontSize="12" IsVisible="{Binding !HasDecisions}" Text="No decisions yet." />
+                  <ItemsControl Name="DecisionList" ItemsSource="{Binding Decisions}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:DecisionRow">
+                        <Grid ColumnDefinitions="100,*" Classes="tablerow">
+                          <TextBlock Text="{Binding When}" Classes="muted" FontSize="12" />
+                          <TextBlock Grid.Column="1" Text="{Binding Text}" TextWrapping="Wrap" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <TextBlock Text="{Binding Sink.Message}" IsVisible="{Binding Sink.HasMessage}" TextWrapping="Wrap"
+                         Classes.error="{Binding Sink.IsError}" Classes.success="{Binding !Sink.IsError}" />
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
       </TabControl>
     </DockPanel>
   </Grid>

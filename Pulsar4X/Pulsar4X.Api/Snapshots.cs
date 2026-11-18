@@ -1618,6 +1618,62 @@ public enum ShipLogKind
     To,
     From,
     Action,
+    /// <summary>A colony administrator's decision, with its reason: the "why?" of colony automation.</summary>
+    Administrator,
+}
+
+/// <summary>How much a colony's administrator does on their own in one area.</summary>
+public enum AutomationLevel
+{
+    /// <summary>Nothing happens unless the player orders it.</summary>
+    Manual,
+    /// <summary>The administrator proposes; the player approves or dismisses in the inbox.</summary>
+    Advise,
+    /// <summary>The administrator acts at once and logs what they did and why.</summary>
+    Auto,
+}
+
+/// <summary>An area of a colony the administrator can run.</summary>
+public enum AutomationArea
+{
+    /// <summary>Installations: Infrastructure, power, storage and mines.</summary>
+    Construction,
+    /// <summary>Factory output kept up to the player's stock targets.</summary>
+    Production,
+}
+
+/// <summary>Something a colony can run short of, in the player's priority order.</summary>
+public enum ColonyNeed
+{
+    Infrastructure,
+    Power,
+    Storage,
+    Mines,
+}
+
+/// <summary>A stock target: keep this many of a design on hand, built on the colony's own lines.</summary>
+public sealed record StockTargetView(string DesignId, string Name, long Target, long Stock, long Queued);
+
+/// <summary>A proposal waiting for the player (Advise level). Approve runs it; dismiss drops it for 30 days.</summary>
+public sealed record SuggestionView(int Id, AutomationArea Area, string Text, string Reason, string Proposer, DateTime Made);
+
+/// <summary>
+/// The owner's view of a colony's automation: the level per area, the construction priorities, the stock
+/// targets, the administrator's open suggestions and when they next review. Another faction does not get this.
+/// </summary>
+public sealed record ColonyAutomationView(AutomationLevel Construction, AutomationLevel Production) : IComponentView
+{
+    public IReadOnlyList<ColonyNeed> Priorities { get; init; } = Array.Empty<ColonyNeed>();
+    public IReadOnlyList<StockTargetView> StockTargets { get; init; } = Array.Empty<StockTargetView>();
+    public IReadOnlyList<SuggestionView> Suggestions { get; init; } = Array.Empty<SuggestionView>();
+
+    /// <summary>Null while the chair is vacant: then nothing is automated.</summary>
+    public string? AdministratorName { get; init; }
+
+    /// <summary>Days between reviews: 7 at Construction skill 0, down to 1 at full skill.</summary>
+    public double ReviewEveryDays { get; init; }
+
+    public DateTime? NextReview { get; init; }
 }
 
 /// <summary>One saved line. The text already names the other party.</summary>

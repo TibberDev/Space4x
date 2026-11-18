@@ -279,6 +279,68 @@ public class MainWindowTests
     }
 
     [AvaloniaTest]
+    public async Task Administrator_section_proposes_and_the_inbox_approves()
+    {
+        var (window, vm) = await OpenRunningGame();
+        window.Height = 900;
+        var client = vm.Client!;
+        vm.SelectedTab = MainWindowViewModel.ColoniesTab;
+        vm.Tick();
+        Pump();
+        var colony = vm.Colonies.SelectedColony!;
+
+        // Seat a civilian (the People test may already have), then ask for a review by setting the level.
+        var civilian = client.Galaxy.Commanders.First(c => c.Kind == Pulsar4X.Api.CommanderKind.Civilian);
+        var seated = await client.SubmitCommandAsync(new Pulsar4X.Api.AssignAdministratorCommand(colony.Id, civilian.Id));
+        TestContext.Out.WriteLine($"seat: {seated.Accepted} {seated.RejectionReason}");
+        var advise = await client.SubmitCommandAsync(new Pulsar4X.Api.SetColonyAutomationCommand(colony.Id,
+            Pulsar4X.Api.AutomationArea.Construction, Pulsar4X.Api.AutomationLevel.Advise));
+        Assert.That(advise.Accepted, Is.True, advise.RejectionReason);
+        for (int i = 0; i < 50 && vm.Inbox.Count == 0; i++)
+        {
+            vm.Tick();
+            Pump();
+            await Task.Delay(20);
+        }
+
+        vm.Colonies.SelectedSection = MainWindowViewModel.AdministratorSection;
+        vm.Tick();
+        Pump();
+        var admin = vm.Colonies.Administrator;
+        Assert.That(admin.HasAdministrator, Is.True, admin.AdministratorText);
+        Assert.That(admin.Construction, Is.EqualTo(Pulsar4X.Api.AutomationLevel.Advise));
+        Assert.That(Find<ItemsControl>(window, "PriorityList").ItemCount, Is.EqualTo(4));
+        Assert.That(admin.Suggestions, Is.Not.Empty, "Earth is short of infrastructure");
+        foreach (var s in admin.Suggestions)
+            TestContext.Out.WriteLine($"{s.Text} | {s.Reason}");
+        Capture(window, "12-colony-administrator");
+
+        // The empire-wide inbox shows the same proposal; approving it queues the build.
+        Assert.That(vm.Inbox.Count, Is.EqualTo(admin.Suggestions.Count));
+        Assert.That(vm.Inbox.Header, Is.EqualTo($"Inbox ({vm.Inbox.Count})"));
+        vm.SelectedTab = MainWindowViewModel.InboxTab;
+        vm.Tick();
+        Pump();
+        Assert.That(Find<ItemsControl>(window, "InboxList").ItemCount, Is.EqualTo(vm.Inbox.Count));
+        Capture(window, "13-inbox");
+
+        int before = vm.Inbox.Count;
+        var first = vm.Inbox.Items.First();
+        await vm.Inbox.ApproveCommand.ExecuteAsync(first);
+        Assert.That(vm.Inbox.Sink.IsError, Is.False, vm.Inbox.Sink.Message);
+        for (int i = 0; i < 50 && vm.Inbox.Count == before; i++)
+        {
+            vm.Tick();
+            Pump();
+            await Task.Delay(20);
+        }
+        Assert.That(vm.Inbox.Count, Is.EqualTo(before - 1));
+        var construction = client.Galaxy.GetSystem(colony.SystemId)!.GetEntity(colony.Id)!.GetView<Pulsar4X.Api.ConstructionView>()!;
+        Assert.That(construction.BuildQueue.Select(j => j.Name), Has.Some.Contains(first.Text.Replace("Build ", "")));
+        window.Close();
+    }
+
+    [AvaloniaTest]
     public async Task Failed_start_shows_the_error_message()
     {
         var (window, vm) = Open(new SharedGame.FailingLauncher());

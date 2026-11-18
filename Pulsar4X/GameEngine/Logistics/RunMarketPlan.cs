@@ -137,7 +137,7 @@ public class RunMarketPlan : IGoalPlanner
             && existing.Reserve == desired.Reserve;
     }
 
-    static bool TryFindLine(Entity colony, FactionInfoDB? info, string cargoId, out string lineId)
+    internal static bool TryFindLine(Entity colony, FactionInfoDB? info, string cargoId, out string lineId)
     {
         lineId = "";
         if (info == null || !info.IndustryDesigns.TryGetValue(cargoId, out var design))
@@ -176,7 +176,7 @@ public class RunMarketPlan : IGoalPlanner
         return sum;
     }
 
-    static long AlreadyQueued(Entity colony, string cargoId)
+    internal static long AlreadyQueued(Entity colony, string cargoId)
     {
         if (!colony.TryGetDataBlob<IndustryAbilityDB>(out var industry))
             return 0;
@@ -202,7 +202,7 @@ public class RunMarketPlan : IGoalPlanner
         return MarketBook.Stock(colony, cargo);
     }
 
-    static FactionInfoDB? FactionOf(Entity colony)
+    internal static FactionInfoDB? FactionOf(Entity colony)
     {
         if (colony.Manager is not { Game: { } game })
             return null;

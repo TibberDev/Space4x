@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:inbox="using:Pulsar4X.UI.Core.Inbox"
+             xmlns:col="using:Pulsar4X.UI.Core.Colonies"
+             xmlns:vm="using:Pulsar4X.UI.Core.ViewModels"
+             x:Class="Pulsar4X.UI.Desktop.Views.InboxView"
+             x:DataType="inbox:InboxViewModel">
+
+  <ScrollViewer>
+    <StackPanel Margin="20,14,20,16" Spacing="12" MaxWidth="960" HorizontalAlignment="Left">
+      <StackPanel>
+        <TextBlock Text="Inbox" FontSize="22" FontWeight="SemiBold" />
+        <TextBlock Classes="muted" TextWrapping="Wrap"
+                   Text="What your administrators propose on Advise. Approve it, dismiss it for 30 days, or open the colony to look closer." />
+      </StackPanel>
+
+      <TextBlock Name="InboxEmpty" Classes="muted" IsVisible="{Binding IsEmpty}"
+                 Text="Nothing is waiting. Colonies on Advise will put their proposals here." />
+
+      <ItemsControl Name="InboxList" ItemsSource="{Binding Items}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="col:SuggestionRow">
+            <Border Classes="card" Margin="0,0,0,8">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="3">
+                  <TextBlock Classes="muted" FontSize="12">
+                    <Run Text="{Binding ColonyName}" />
+                    <Run Text=" · " />
+                    <Run Text="{Binding Area}" />
+                    <Run Text=" · " />
+                    <Run Text="{Binding Proposer}" />
+                    <Run Text=" · " />
+                    <Run Text="{Binding Made}" />
+                  </TextBlock>
+                  <TextBlock Text="{Binding Text}" FontWeight="SemiBold" FontSize="15" />
+                  <TextBlock Text="{Binding Reason}" Classes="muted" TextWrapping="Wrap" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="12,0,0,0">
+                  <Button Content="Approve"
+                          Command="{Binding $parent[ItemsControl].((inbox:InboxViewModel)DataContext).ApproveCommand}" CommandParameter="{Binding}" />
+                  <Button Content="Dismiss"
+                          Command="{Binding $parent[ItemsControl].((inbox:InboxViewModel)DataContext).DismissCommand}" CommandParameter="{Binding}" />
+                  <Button Content="Open colony" Classes="small"
+                          Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenSuggestionColonyCommand}" CommandParameter="{Binding}" />
+                </StackPanel>
+              </Grid>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <TextBlock Text="{Binding Sink.Message}" IsVisible="{Binding Sink.HasMessage}" TextWrapping="Wrap"
+                 Classes.error="{Binding Sink.IsError}" Classes.success="{Binding !Sink.IsError}" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

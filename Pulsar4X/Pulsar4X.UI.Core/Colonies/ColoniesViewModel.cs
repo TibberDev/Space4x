@@ -17,12 +17,14 @@ public sealed partial class ColoniesViewModel : ObservableObject
     {
         Production = new ColonyProductionViewModel(new CommandSink(submit));
         Construction = new ColonyConstructionViewModel(new CommandSink(submit));
+        Administrator = new ColonyAutomationViewModel(new CommandSink(submit));
     }
 
     public ObservableCollection<ColonyListItem> Colonies { get; } = new();
     public ColonySummaryViewModel Summary { get; } = new();
     public ColonyProductionViewModel Production { get; }
     public ColonyConstructionViewModel Construction { get; }
+    public ColonyAutomationViewModel Administrator { get; }
     public ObservableCollection<MineralRow> Minerals { get; } = new();
 
     [ObservableProperty]
@@ -33,7 +35,7 @@ public sealed partial class ColoniesViewModel : ObservableObject
     [ObservableProperty] private string _subtitle = "";
     [ObservableProperty] private string _minesText = "";
 
-    /// <summary>0 Summary, 1 Production, 2 Construction, 3 Mining.</summary>
+    /// <summary>0 Summary, 1 Production, 2 Construction, 3 Mining, 4 Administrator.</summary>
     [ObservableProperty] private int _selectedSection;
 
     public bool HasColony => SelectedColony != null;
@@ -103,6 +105,7 @@ public sealed partial class ColoniesViewModel : ObservableObject
         Summary.Update(entitySnapshot);
         Production.Update(entitySnapshot.Id, entitySnapshot.GetView<IndustryView>());
         Construction.Update(entitySnapshot.Id, entitySnapshot.GetView<ConstructionView>());
+        Administrator.Update(entitySnapshot, selected.Name);
 
         var mining = entitySnapshot.GetView<ColonyMiningView>();
         MinesText = mining == null ? "No mining data." : $"{Fmt.Int(mining.NumberOfMines)} mine{(mining.NumberOfMines == 1 ? "" : "s")}";

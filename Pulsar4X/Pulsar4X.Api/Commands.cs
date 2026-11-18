@@ -276,6 +276,21 @@ public sealed record AssignCaptainCommand(int TargetEntityId, int CommanderId) :
 /// </summary>
 public sealed record AssignAdministratorCommand(int TargetEntityId, int CommanderId) : GameCommand(TargetEntityId);
 
+/// <summary>Sets how much the colony's administrator does on their own in one area. Targets the colony.</summary>
+public sealed record SetColonyAutomationCommand(int TargetEntityId, AutomationArea Area, AutomationLevel Level) : GameCommand(TargetEntityId);
+
+/// <summary>The order the administrator tackles construction needs in. Must list each need once. Targets the colony.</summary>
+public sealed record SetColonyPrioritiesCommand(int TargetEntityId, IReadOnlyList<ColonyNeed> Priorities) : GameCommand(TargetEntityId);
+
+/// <summary>Keep <see cref="Target"/> of a design on hand at the colony. 0 clears the target. Targets the colony.</summary>
+public sealed record SetStockTargetCommand(int TargetEntityId, string DesignId, long Target) : GameCommand(TargetEntityId);
+
+/// <summary>Runs one of the administrator's suggestions now. Targets the colony.</summary>
+public sealed record ApproveSuggestionCommand(int TargetEntityId, int SuggestionId) : GameCommand(TargetEntityId);
+
+/// <summary>Drops one of the administrator's suggestions; they do not propose it again for 30 days. Targets the colony.</summary>
+public sealed record DismissSuggestionCommand(int TargetEntityId, int SuggestionId) : GameCommand(TargetEntityId);
+
 /// <summary>
 /// Hire one candidate from this colony's pool. Targets the colony whose pool holds the candidate. One person
 /// leaves the population. An administrator joins unassigned, or takes <see cref="PostColonyId"/>'s chair when

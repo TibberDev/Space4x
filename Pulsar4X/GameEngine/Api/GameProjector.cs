@@ -297,6 +297,8 @@ namespace Pulsar4X.Engine.Api
                 ? new OrdersView(ProjectGoals(e), ProjectOrders(e)) : null,
             (e, f) => e.FactionOwnerID == f && e.TryGetDataBlob<ShipLogDB>(out var log)
                 ? ToShipLogView(log) : null,
+            (e, f) => e.FactionOwnerID == f && e.TryGetDataBlob<ColonyAutomationDB>(out var auto)
+                ? ToColonyAutomationView(auto, e, f) : null,
             (e, f) => e.FactionOwnerID == f && e.TryGetDataBlob<Pulsar4X.Movement.NewtonThrustAbilityDB>(out var th)
                 ? ToThrustView(th, e, f) : null,
             (e, f) => e.FactionOwnerID == f && e.TryGetDataBlob<Pulsar4X.Movement.WarpAbilityDB>(out var wa)
@@ -2778,6 +2780,32 @@ namespace Pulsar4X.Engine.Api
                 };
             }
             return goalSnapshot;
+        }
+
+        private static ColonyAutomationView ToColonyAutomationView(ColonyAutomationDB automation, Entity colony, int factionId)
+        {
+            FactionInfoDB? info = colony.Manager?.Game is { } game && game.Factions.TryGetValue(factionId, out var faction)
+                && faction.TryGetDataBlob<FactionInfoDB>(out var fi) ? fi : null;
+            var targets = new List<StockTargetView>();
+            foreach (var (designId, target) in automation.StockTargets.OrderBy(p => p.Key, StringComparer.Ordinal))
+            {
+                string name = info != null && info.IndustryDesigns.TryGetValue(designId, out var design) ? design.Name : designId;
+                targets.Add(new StockTargetView(designId, name, target,
+                    ColonyAdministration.Stock(colony, designId), Pulsar4X.Logistics.RunMarketPlan.AlreadyQueued(colony, designId)));
+            }
+
+            bool seated = Pulsar4X.People.CommanderSkills.TryGetCommander(colony, out var admin, out var adminDB);
+            return new ColonyAutomationView(automation.Construction, automation.Production)
+            {
+                Priorities = automation.Priorities.ToList(),
+                StockTargets = targets,
+                Suggestions = automation.Suggestions
+                    .Select(s => new SuggestionView(s.Id, s.Area, s.Text, s.Reason, s.Proposer, s.Made))
+                    .ToList(),
+                AdministratorName = seated ? admin.GetName(factionId) : null,
+                ReviewEveryDays = seated ? ColonyAdministration.ReviewEveryDays(adminDB) : 0,
+                NextReview = seated && automation.NextReview != default ? automation.NextReview : null,
+            };
         }
 
         private static ShipLogView ToShipLogView(ShipLogDB log)

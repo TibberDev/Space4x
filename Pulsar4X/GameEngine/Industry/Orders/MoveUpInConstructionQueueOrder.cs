@@ -27,6 +27,9 @@ public class MoveUpInConstructionQueueOrder : EntityAction
     {
         _colonyEntity = colonyEntity;
         _job = job;
+        // Instant: IsFinished() is always true, so in the action lanes the queue processor would
+        // mark this done without ever calling Execute. Run it at once, like AddToConstructionQueueOrder.
+        UseActionLanes = false;
     }
 
     public static MoveUpInConstructionQueueOrder Create(Entity colonyEntity, LocalConstructionJob job)

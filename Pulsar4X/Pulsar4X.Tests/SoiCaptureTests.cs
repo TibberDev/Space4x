@@ -73,7 +73,7 @@ public class SoiCaptureTests
         _earth = _starship.GetSOIParentEntity();
         _luna = _earth.GetDataBlob<OrbitDB>().Children.First(c => c.GetName(_faction.Id) == "Luna");
         _design = _faction.GetDataBlob<FactionInfoDB>().ShipDesigns["early-ship-design-starship"];
-        _methalox = _faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+        _methalox = _faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
         _fuelKg = _starship.GetDataBlob<CargoStorageDB>().GetMassStored(_methalox, false);
         Assert.That(_fuelKg, Is.GreaterThan(0));
         Assert.That(_earth, Is.Not.Null);

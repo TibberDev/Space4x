@@ -145,7 +145,7 @@ public class AsteroidMineTests
         power.EnergyStoreMax["electricity"] = 1;
         power.EnergyStored["electricity"] = 1;
         power.MaxOutputFromReactor = 1;
-        power.TotalFuelUseAtMax = ("fissile-fuels", 1e-6);
+        power.TotalFuelUseAtMax = ("uranium", 1e-6);
         power.LocalFuel = 1;
 
         var order = new AsteroidMineOrder(ship, rock);
@@ -563,8 +563,8 @@ public class AsteroidMineTests
         ship.SetDataBlob(thrust);
 
         var data = faction.GetDataBlob<FactionInfoDB>().Data;
-        data.Unlock("methalox");
-        var fuel = data.CargoGoods.GetAny("methalox");
+        data.Unlock("hydrocarbons");
+        var fuel = data.CargoGoods.GetAny("hydrocarbons");
         thrust.FuelType = fuel.UniqueID;
         var storage = new CargoStorageDB(fuel.CargoTypeID, 1e12);
         storage.AddCargoByUnit(fuel, 1_000_000);

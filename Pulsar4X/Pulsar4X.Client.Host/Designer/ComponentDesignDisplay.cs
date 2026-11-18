@@ -1086,12 +1086,12 @@ namespace Pulsar4X.Client
                 var cargos = designInfo.Data.CargoGoods.GetAll().Where(c => c.Value.CargoTypeID.Equals(cargoTypeID));
                 foreach(var cargo in cargos)
                 {
-                    if(cargo.Value is ProcessedMaterial
-                       && ((ProcessedMaterial)cargo.Value).Formulas != null
-                       && ((ProcessedMaterial)cargo.Value).Formulas.ContainsKey("ExhaustVelocity")
-                       && ((ProcessedMaterial)cargo.Value).Formulas["ExhaustVelocity"].IsNotNullOrEmpty()
-                       && ((ProcessedMaterial)cargo.Value).Formulas.ContainsKey("FuelType")
-                       && ((ProcessedMaterial)cargo.Value).Formulas["FuelType"] == fuelType)
+                    // FuelType may list several tags ("conventional ntr"): Hydrogen feeds both engine kinds.
+                    var formulas = CargoDefinitionsLibrary.FormulasOf(cargo.Value);
+                    if(formulas != null
+                       && formulas.TryGetValue("ExhaustVelocity", out var exhaust) && exhaust.IsNotNullOrEmpty()
+                       && formulas.TryGetValue("FuelType", out var tags)
+                       && tags.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains(fuelType))
                     {
                         cargoTypesToDisplay.Add(cargo.Value);
                     }

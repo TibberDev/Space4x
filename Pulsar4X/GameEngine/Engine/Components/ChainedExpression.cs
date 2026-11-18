@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NCalc;
 using Pulsar4X.Blueprints;
 using Pulsar4X.Factions;
+using Pulsar4X.Storage;
 
 namespace Pulsar4X.Components
 {
@@ -547,8 +548,8 @@ namespace Pulsar4X.Components
                     args.Result = argList;
                     break;
                 case "ExhaustVelocityLookup":
-                    var cargo = (ProcessedMaterialBlueprint?)_factionDataStore.CargoGoods.GetAny((string)args.EvaluateParameters()[0]);
-                    Expression dataExpression = new Expression(cargo.Formulas["ExhaustVelocity"]);
+                    var cargo = _factionDataStore.CargoGoods.GetAny((string)args.EvaluateParameters()[0]);
+                    Expression dataExpression = new Expression(CargoDefinitionsLibrary.FormulasOf(cargo)["ExhaustVelocity"]);
                     args.Result = dataExpression.Evaluate();
                     break;
                 // Chemical energy of a propellant mix, kJ per kg of fuel and oxidiser (the material's
@@ -556,9 +557,9 @@ namespace Pulsar4X.Components
                 case "ChemicalEnergyLookup":
                 {
                     string fuelId = (string)args.EvaluateParameters()[0];
-                    var fuel = (_factionDataStore.CargoGoods.GetAny(fuelId) ?? _factionDataStore.LockedCargoGoods.GetAny(fuelId)) as ProcessedMaterialBlueprint;
+                    var fuel = CargoDefinitionsLibrary.FormulasOf(_factionDataStore.CargoGoods.GetAny(fuelId) ?? _factionDataStore.LockedCargoGoods.GetAny(fuelId));
                     double energy = 0;
-                    if (fuel?.Formulas != null && fuel.Formulas.TryGetValue("ChemicalEnergy", out var formula))
+                    if (fuel != null && fuel.TryGetValue("ChemicalEnergy", out var formula))
                         energy = Convert.ToDouble(new Expression(formula).Evaluate());
                     args.Result = energy;
                     break;

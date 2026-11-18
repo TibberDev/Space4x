@@ -17,11 +17,11 @@ public static class CeresStart
     public const int ChartCount = 3;
     public const decimal ChartAsk = 10m;
 
-    public const string FuelId = "methalox";
+    public const string FuelId = "hydrocarbons";
     public const string IronId = "iron";
     public const string WaterId = "water";
 
-    /// <summary>The depot's methalox ask (3 before phase 5).</summary>
+    /// <summary>The depot's fuel ask (3 before phase 5).</summary>
     public static decimal FuelAsk(Game? game, FactionDataStore data) => EnergyPricing.DepotSeedAsk(game, data, FuelId);
 
     /// <summary>The depot's iron ask (2 before phase 5).</summary>

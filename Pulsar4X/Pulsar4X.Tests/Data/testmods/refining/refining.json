@@ -1,0 +1,266 @@
+[
+  {
+    "Type": "IndustryType",
+    "Payload": {
+      "UniqueID": "refining",
+      "Name": "Refining",
+      "EnergyPerPoint": 7
+    }
+  },
+  {
+    "Type": "ProcessedMaterial",
+    "Payload": {
+      "UniqueID": "stainless-steel",
+      "Name": "Stainless Steel",
+      "Description": "Refined Iron",
+      "CargoTypeID": "general-storage",
+      "MassPerUnit": 1.0,
+      "VolumePerUnit": 0.000125,
+      "PartMatUniqueID": "stainless-steel",
+      "ResourceCosts": {
+        "iron": 88,
+        "chromium": 11,
+        "hydrocarbons": 1
+      },
+      "IndustryPointCosts": 20,
+      "EnergyCost": 70,
+      "IndustryTypeID": "refining",
+      "WealthCost": 0,
+      "OutputAmount": 100
+    }
+  },
+  {
+    "Type": "ProcessedMaterial",
+    "Payload": {
+      "UniqueID": "hydrolox",
+      "Name": "Hydrolox",
+      "Description": "Hydrogen and Oxygen rocket fuel at a mix of 2.7:1 by volume",
+      "CargoTypeID": "fuel-storage",
+      "MassPerUnit": 1,
+      "VolumePerUnit": 0.002777778,
+      "ResourceCosts": {
+        "hydrocarbons": 4250
+      },
+      "IndustryPointCosts": 500,
+      "EnergyCost": 19550,
+      "IndustryTypeID": "refining",
+      "WealthCost": 3,
+      "OutputAmount": 8500,
+      "Formulas": {
+        "ExhaustVelocity": "4462",
+        "ChemicalEnergy": "13300",
+        "FuelType": "conventional"
+      }
+    }
+  },
+  {
+    "Type": "ProcessedMaterial",
+    "Payload": {
+      "UniqueID": "plastic",
+      "Name": "Plastic",
+      "Description": "Rendered from Hydrocarbons",
+      "CargoTypeID": "general-storage",
+      "PartMatUniqueID": "delrin",
+      "MassPerUnit": 1,
+      "VolumePerUnit": 0.0010638298,
+      "ResourceCosts": {
+        "hydrocarbons": 1
+      },
+      "IndustryPointCosts": 5,
+      "EnergyCost": 12,
+      "IndustryTypeID": "refining",
+      "WealthCost": 1,
+      "OutputAmount": 2
+    }
+  },
+  {
+    "Type": "ComponentTemplate",
+    "Payload": {
+      "UniqueID": "refinery",
+      "Name": "Prefab Refinery",
+      "Formulas": {
+        "Description": "A freightable refinery. The site refinery is the heavier twin.",
+        "Mass": "PropertyValue('Size') * 0.4",
+        "Volume": "[Mass]",
+        "HTK": "0.5",
+        "CrewReq": "[Mass] * 0.02 * Pow(PropertyValue('Size') / 1000, -0.25)",
+        "ResearchCost": "0",
+        "CreditCost": "120 * Pow(PropertyValue('Size') / 1000, 1.1)",
+        "BuildPointCost": "[Mass] * Pow(PropertyValue('Size') / 1000, 0.15)"
+      },
+      "ResourceCost": {
+        "iron": "[Mass] * 0.15",
+        "aluminium": "[Mass] * 0.25",
+        "titanium": "[Mass] * 0.35",
+        "stainless-steel": "[Mass] * 0.15",
+        "copper": "[Mass] * 0.10"
+      },
+      "ComponentType": "Facility",
+      "MountType": "ShipCargo, PlanetInstallation",
+      "CargoTypeID": "general-storage",
+      "IndustryTypeID": "installation-construction",
+      "Properties": [
+        {
+          "Name": "Power Draw",
+          "Units": "kW",
+          "DescriptionFormula": "'7 kWh per refining point (a recipe average).'",
+          "GuiHint": "GuiTextDisplay",
+          "PropertyFormula": "(PropertyValue('Refinery Points') * 7 / 24) * Pow(PropertyValue('Size') / 1000, -0.15)"
+        },
+        {
+          "Name": "DBargsPower",
+          "DescriptionFormula": "''",
+          "GuiHint": "None",
+          "PropertyFormula": "AtbConstrArgs(PropertyValue('Power Draw'), 4)",
+          "AttributeType": "Pulsar4X.Energy.PowerConsumerAtb"
+        },
+        {
+          "Name": "Size",
+          "DescriptionFormula": "'Size of this installation'",
+          "GuiHint": "GuiSelectionMaxMin",
+          "MaxFormula": "10000",
+          "MinFormula": "1000",
+          "StepFormula": "50",
+          "PropertyFormula": "1000"
+        },
+        {
+          "Name": "Refinery Points",
+          "DescriptionFormula": "'Refines at a rate of'",
+          "GuiHint": "GuiTextDisplay",
+          "PropertyFormula": "PropertyValue('Size') * 0.1"
+        },
+        {
+          "Name": "RefineAbilitys",
+          "DescriptionFormula": "''",
+          "GuiHint": "None",
+          "DataDict": {
+            "refining": "PropertyValue('Refinery Points')"
+          },
+          "PropertyFormula": "AtbConstrArgs([GuidDict])",
+          "AttributeType": "Pulsar4X.Industry.IndustryAtb"
+        }
+      ]
+    }
+  },
+  {
+    "Type": "ComponentTemplate",
+    "Payload": {
+      "UniqueID": "refinery-site",
+      "Name": "Refinery",
+      "Formulas": {
+        "Description": "A site-built refinery. Assembled in place. It cannot be freighted.",
+        "Mass": "PropertyValue('Size') * 2.5",
+        "Volume": "[Mass]",
+        "HTK": "0.5",
+        "CrewReq": "[Mass] * 0.08 * Pow(PropertyValue('Size') / 5000, -0.25)",
+        "ResearchCost": "0",
+        "CreditCost": "120 * Pow(PropertyValue('Size') / 5000, 1.1)",
+        "BuildPointCost": "8000 * Pow(PropertyValue('Size') / 5000, 1.15)"
+      },
+      "ResourceCost": {
+        "iron": "[Mass] * 0.50",
+        "regolith": "[Mass] * 0.30",
+        "stainless-steel": "[Mass] * 0.15",
+        "copper": "[Mass] * 0.05"
+      },
+      "ComponentType": "Facility",
+      "MountType": "PlanetInstallation",
+      "CargoTypeID": "None",
+      "IndustryTypeID": "installation-construction",
+      "Properties": [
+        {
+          "Name": "Power Draw",
+          "Units": "kW",
+          "DescriptionFormula": "'7 kWh per refining point (a recipe average).'",
+          "GuiHint": "GuiTextDisplay",
+          "PropertyFormula": "(PropertyValue('Refinery Points') * 7 / 24) * Pow(PropertyValue('Size') / 5000, -0.15)"
+        },
+        {
+          "Name": "DBargsPower",
+          "DescriptionFormula": "''",
+          "GuiHint": "None",
+          "PropertyFormula": "AtbConstrArgs(PropertyValue('Power Draw'), 4)",
+          "AttributeType": "Pulsar4X.Energy.PowerConsumerAtb"
+        },
+        {
+          "Name": "Size",
+          "DescriptionFormula": "'Size of this installation'",
+          "GuiHint": "GuiSelectionMaxMin",
+          "MaxFormula": "10000",
+          "MinFormula": "1000",
+          "StepFormula": "50",
+          "PropertyFormula": "5000"
+        },
+        {
+          "Name": "Refinery Points",
+          "DescriptionFormula": "'Refines at a rate of'",
+          "GuiHint": "GuiTextDisplay",
+          "PropertyFormula": "PropertyValue('Size') * 0.1"
+        },
+        {
+          "Name": "RefineAbilitys",
+          "DescriptionFormula": "''",
+          "GuiHint": "None",
+          "DataDict": {
+            "refining": "PropertyValue('Refinery Points')"
+          },
+          "PropertyFormula": "AtbConstrArgs([GuidDict])",
+          "AttributeType": "Pulsar4X.Industry.IndustryAtb"
+        }
+      ]
+    }
+  },
+  {
+    "Type": "ComponentDesign",
+    "Payload": {
+      "UniqueId": "default-design-refinery",
+      "Name": "Prefab Refinery",
+      "TemplateId": "refinery",
+      "Properties": [
+        {
+          "Key": "Size",
+          "Value": 1000
+        }
+      ]
+    }
+  },
+  {
+    "Type": "ComponentDesign",
+    "Payload": {
+      "UniqueId": "default-design-refinery-site",
+      "Name": "Refinery",
+      "TemplateId": "refinery-site"
+    }
+  },
+  {
+    "Type": "Colony",
+    "CollectionOperation": "Add",
+    "Payload": {
+      "UniqueID": "colony-earth",
+      "Installations": [
+        {
+          "Id": "default-design-refinery-site",
+          "Amount": 1
+        }
+      ],
+      "ComponentDesigns": [
+        "default-design-refinery",
+        "default-design-refinery-site"
+      ],
+      "StartingItems": [
+        "refining",
+        "refinery",
+        "refinery-site",
+        "stainless-steel",
+        "plastic",
+        "hydrolox"
+      ],
+      "Cargo": [
+        {
+          "Id": "stainless-steel",
+          "Amount": 100000
+        }
+      ]
+    }
+  }
+]

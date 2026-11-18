@@ -152,8 +152,8 @@ namespace Pulsar4X.Tests
             Assert.That(reactor.FuelRemaining_kg, Is.EqualTo(123.5));
             Assert.That(reactor.FuelBurnAtFull_kgPerS, Is.EqualTo(gen.FuelUsedAtMax).Within(1e-24));
             Assert.That(reactor.RunwayAtFull_s, Is.EqualTo(123.5 / gen.FuelUsedAtMax).Within(1));
-            Assert.That(reactor.FuelId, Is.EqualTo("fissile-fuels"));
-            Assert.That(reactor.FuelName, Is.EqualTo(Data.CargoGoods.GetAny("fissile-fuels")!.Name));
+            Assert.That(reactor.FuelId, Is.EqualTo("uranium"));
+            Assert.That(reactor.FuelName, Is.EqualTo(Data.CargoGoods.GetAny("uranium")!.Name));
             Assert.That(reactor.Note, Is.Null);
 
             var cells = view.Sources.Single(s => s.Kind == "Fuel cell");

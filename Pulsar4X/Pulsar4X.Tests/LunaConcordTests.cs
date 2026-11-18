@@ -114,18 +114,18 @@ public class LunaConcordTests
 
         Assert.That(colony.GetDataBlob<GoalsDB>().ActiveGoal!.Type, Is.EqualTo(GoalType.OfferStock));
         Assert.That(colony.TryGetDataBlob<LogiBaseDB>(out var book), Is.True);
-        Assert.That(book!.Listings.Keys, Is.EquivalentTo(new[] { "iron", "titanium", "silicon", "methalox", "fissile-fuels" }),
+        Assert.That(book!.Listings.Keys, Is.EquivalentTo(new[] { "iron", "titanium", "silicon", "hydrocarbons", "uranium" }),
             "fissile fuel is the seeded reactor's runway (energy phase 2)");
         foreach (var listing in book.Listings.Values)
         {
-            if (listing.CargoId == "fissile-fuels")
+            if (listing.CargoId == "uranium")
             {
                 // The reactor's runway is held back. A placed faction starts with every tech at level 1,
                 // so since energy phase 4 its plant is designed at 36% (not 33%) and the seeded stock
                 // is a little over its runway; only that surplus may be listed.
-                var fuel = colony.GetFactionOwner.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("fissile-fuels")!;
+                var fuel = colony.GetFactionOwner.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("uranium")!;
                 long stock = colony.GetDataBlob<CargoStorageDB>().GetUnitsStored(fuel, false);
-                long reserve = Pulsar4X.Energy.ColonyPowerProcessor.FuelReserveUnits(colony, "fissile-fuels");
+                long reserve = Pulsar4X.Energy.ColonyPowerProcessor.FuelReserveUnits(colony, "uranium");
                 Assert.That(reserve, Is.GreaterThan(0));
                 Assert.That(stock - listing.SellQuantity, Is.GreaterThanOrEqualTo(reserve), "the reactor's runway is held back");
                 continue;
@@ -139,7 +139,7 @@ public class LunaConcordTests
         Assert.That(view, Is.Not.Null);
         Assert.That(view!.CanEdit, Is.False);
         Assert.That(view.Goods.Select(good => good.CargoId), Is.EquivalentTo(book.Listings.Keys));
-        Assert.That(view.Goods.Where(good => good.CargoId != "fissile-fuels").All(good => good.SellQuantity > 0));
+        Assert.That(view.Goods.Where(good => good.CargoId != "uranium").All(good => good.SellQuantity > 0));
         if (colony.TryGetDataBlob<IndustryAbilityDB>(out var industry))
             Assert.That(industry.ProductionLines.Values.All(line => line.Jobs.Count == 0), Is.True);
     }

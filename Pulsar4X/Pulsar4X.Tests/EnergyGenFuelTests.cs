@@ -139,7 +139,7 @@ public class EnergyGenFuelTests
         var blob = new EnergyGenAbilityDB(_start)
         {
             MaxOutputFromReactor = ReactorKw,
-            TotalFuelUseAtMax = ("fissile-fuels", FuelAtMaxKgS),
+            TotalFuelUseAtMax = ("uranium", FuelAtMaxKgS),
             LocalFuel = savedFuel,
         };
 
@@ -175,8 +175,8 @@ public class EnergyGenFuelTests
     public void Install_SumsFuelPerReactor()
     {
         var ship = OwnedShip();
-        var a = new EnergyGenerationAtb("fissile-fuels", 0.001, "electricity", 15, 1000);
-        var b = new EnergyGenerationAtb("fissile-fuels", 0.002, "electricity", 10, 500);
+        var a = new EnergyGenerationAtb("uranium", 0.001, "electricity", 15, 1000);
+        var b = new EnergyGenerationAtb("uranium", 0.002, "electricity", 10, 500);
 
         a.OnComponentInstallation(ship, null!);
         b.OnComponentInstallation(ship, null!);
@@ -194,8 +194,8 @@ public class EnergyGenFuelTests
     public void Uninstall_ReversesGenStoreAndSolar()
     {
         var ship = OwnedShip();
-        var a = new EnergyGenerationAtb("fissile-fuels", 0.001, "electricity", 15, 1000);
-        var b = new EnergyGenerationAtb("fissile-fuels", 0.002, "electricity", 10, 500);
+        var a = new EnergyGenerationAtb("uranium", 0.001, "electricity", 15, 1000);
+        var b = new EnergyGenerationAtb("uranium", 0.002, "electricity", 10, 500);
         var battery = new EnergyStoreAtb("electricity", 1000);
         var panel = new EnergySolarGenerationAtb(550, 300, 20, 10, 50);
         a.OnComponentInstallation(ship, null!);
@@ -233,7 +233,7 @@ public class EnergyGenFuelTests
     [Test]
     public void Description_SaysKilowatts()
     {
-        var atb = new EnergyGenerationAtb("fissile-fuels", 0.001, "electricity", 15, 1000);
+        var atb = new EnergyGenerationAtb("uranium", 0.001, "electricity", 15, 1000);
         Assert.That(atb.AtbDescription(), Does.Contain("15 kW"));
         Assert.That(atb.AtbDescription(), Does.Not.Contain("Mw"));
     }
@@ -364,7 +364,7 @@ public class EnergyGenFuelTests
         var energy = new EnergyGenAbilityDB(_start.AddSeconds(-100))
         {
             MaxOutputFromReactor = ReactorKw,
-            TotalFuelUseAtMax = ("fissile-fuels", 0),
+            TotalFuelUseAtMax = ("uranium", 0),
             LocalFuel = 0,
         };
         energy.EnergyStored["electricity"] = 0;
@@ -373,7 +373,7 @@ public class EnergyGenFuelTests
         _sys.AddEntity(ship, new BaseDataBlob[] { energy });
         energy.EnergyType = EnergyGenAbilityDB.FindEnergyType(ship, "electricity");
 
-        new EnergyGenerationAtb("fissile-fuels", 0, "electricity", 10, 0).OnComponentInstallation(ship, null!);
+        new EnergyGenerationAtb("uranium", 0, "electricity", 10, 0).OnComponentInstallation(ship, null!);
 
         Assert.That(energy.EnergyStored["electricity"], Is.EqualTo(ReactorKw * 100).Within(1e-6),
             "the last 100 s ran at the old 15 kW, not the new 25 kW");
@@ -426,7 +426,7 @@ public class EnergyGenFuelTests
         {
             EnergyType = new TestElectricity(),
             MaxOutputFromReactor = ReactorKw,
-            TotalFuelUseAtMax = ("fissile-fuels", fuelAtMax),
+            TotalFuelUseAtMax = ("uranium", fuelAtMax),
             LocalFuel = fuel,
         };
         energy.EnergyStored["electricity"] = stored;

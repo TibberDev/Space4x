@@ -429,8 +429,9 @@ public class CrewPayTests
     public void Construction_SpendsNoPoints_WhileNegative_AndResumesAfter()
     {
         var industry = _earth.GetDataBlob<IndustryAbilityDB>();
-        string itemId = "stainless-steel";
-        var design = Info.IndustryDesigns[itemId];
+        // Any job a line at Earth can build (basemod has no refining since mined-only resources).
+        var (itemId, design) = Info.IndustryDesigns.First(d => industry.ProductionLines.Values
+            .Any(l => l.IndustryTypeRates.ContainsKey(d.Value.IndustryTypeID)));
         string lineId = industry.ProductionLines.First(l => l.Value.IndustryTypeRates.ContainsKey(design.IndustryTypeID)).Key;
         var job = new IndustryJob(Info, itemId);
         job.InitialiseJob(1, false);

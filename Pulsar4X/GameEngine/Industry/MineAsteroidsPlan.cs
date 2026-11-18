@@ -390,8 +390,11 @@ public class MineAsteroidsPlan : IGoalPlanner
         if (library == null)
             return carried;
 
-        foreach (var store in cargo.TypeStores.Values)
+        foreach (var (storeId, store) in cargo.TypeStores)
         {
+            // Minerals in the fuel tanks are the ship's own fuel (Hydrocarbons, Hydrogen, Uranium), not ore.
+            if (storeId == "fuel-storage")
+                continue;
             foreach (var (id, units) in store.CurrentStoreInUnits)
             {
                 if (units <= 0)

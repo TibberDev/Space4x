@@ -15,8 +15,9 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Mass') / 1500, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.5",
-        "plastic": "[Mass] * 0.4",
+        "iron": "[Mass] * 0.445",
+        "chromium": "[Mass] * 0.055",
+        "hydrocarbons": "[Mass] * 0.2",
         "copper": "[Mass] * 0.1"
       },
       "ComponentType": "Facility",
@@ -62,7 +63,7 @@
           "Name": "DB",
           "DescriptionFormula": "''",
           "GuiHint": "None",
-          "PropertyFormula": "AtbConstrArgs('fissile-fuels', PropertyValue('Fuel Consumption'), 'electricity', PropertyValue('Power Output'), PropertyValue('Lifetime'))",
+          "PropertyFormula": "AtbConstrArgs('uranium', PropertyValue('Fuel Consumption'), 'electricity', PropertyValue('Power Output'), PropertyValue('Lifetime'))",
           "AttributeType": "Pulsar4X.Energy.EnergyGenerationAtb"
         },
         {
@@ -92,7 +93,7 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Mass') / 1500, 0.15)"
       },
       "ResourceCost": {
-        "plastic": "[Mass] * 0.2",
+        "hydrocarbons": "[Mass] * 0.1",
         "copper": "[Mass] * 0.2",
         "lithium": "[Mass] * 0.4",
         "graphite": "[Mass] * 0.1",
@@ -176,7 +177,7 @@
       },
       "ResourceCost": {
         "aluminium": "PropertyValue('Structural Material')",
-        "fissile-fuels": "PropertyValue('Fuel')",
+        "uranium": "PropertyValue('Fuel')",
         "silicon": "PropertyValue('Thermoelectric Materials')",
         "copper": "PropertyValue('Electrics and wiring')"
       },
@@ -269,7 +270,7 @@
           "Name": "DB",
           "DescriptionFormula": "''",
           "GuiHint": "None",
-          "PropertyFormula": "AtbConstrArgs(UniqueID('fissile-fuels'), 0.0, UniqueID('electricity'), PropertyValue('Power Output'), 0.0, PropertyValue('Half-life') * 31557600, 0.0)",
+          "PropertyFormula": "AtbConstrArgs(UniqueID('uranium'), 0.0, UniqueID('electricity'), PropertyValue('Power Output'), 0.0, PropertyValue('Half-life') * 31557600, 0.0)",
           "AttributeType": "Pulsar4X.Energy.EnergyGenerationAtb"
         },
         {
@@ -299,8 +300,9 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Mass') / 250, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.3",
-        "plastic": "[Mass] * 0.3",
+        "iron": "[Mass] * 0.267",
+        "chromium": "[Mass] * 0.033",
+        "hydrocarbons": "[Mass] * 0.15",
         "nickel": "[Mass] * 0.2",
         "graphite": "[Mass] * 0.1",
         "copper": "[Mass] * 0.1"
@@ -327,7 +329,7 @@
           "DataDict": {
             "fuel-storage": "'conventional'"
           },
-          "PropertyFormula": "UniqueID('hydrolox')"
+          "PropertyFormula": "UniqueID('hydrogen')"
         },
         {
           "Name": "Specific Power",
@@ -397,15 +399,15 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Mass') / 2000, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "PropertyValue('CoreMass') * 0.5 + PropertyValue('GennyMass') * 0.2",
-        "fissile-fuels": "PropertyValue('FuelMass')",
+        "iron": "(PropertyValue('CoreMass') * 0.5 + PropertyValue('GennyMass') * 0.2) * 0.89",
+        "chromium": "(PropertyValue('CoreMass') * 0.5 + PropertyValue('GennyMass') * 0.2) * 0.11",
+        "uranium": "PropertyValue('FuelMass')",
         "copper": "PropertyValue('CoreMass') * 0.05 + PropertyValue('GennyMass') * 0.2",
         "aluminium": "PropertyValue('CoreMass') * 0.05 + PropertyValue('GennyMass') * 0.2",
         "graphite": "PropertyValue('CoreMass') * 0.15",
         "nickel": "PropertyValue('CoreMass') * 0.005 + PropertyValue('GennyMass') * 0.1",
         "titanium": "PropertyValue('CoreMass') * 0.005",
         "tungsten": "PropertyValue('GennyMass') * 0.05"
-        
       },
       "ComponentType": "Energy Generator",
       "MountType": "ShipComponent, ShipCargo, Fighter",
@@ -499,7 +501,7 @@
         {
           "Name": "DB",
           "GuiHint": "None",
-          "PropertyFormula": "AtbConstrArgs(UniqueID('fissile-fuels'), PropertyValue('Fuel Burn Rate'), UniqueID('electricity'), PropertyValue('GeneratorOutput'), PropertyValue('FuelDuration'))",
+          "PropertyFormula": "AtbConstrArgs(UniqueID('uranium'), PropertyValue('Fuel Burn Rate'), UniqueID('electricity'), PropertyValue('GeneratorOutput'), PropertyValue('FuelDuration'))",
           "AttributeType": "Pulsar4X.Energy.EnergyGenerationAtb"
         },
         {
@@ -529,7 +531,7 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Area') / 100, 0.15)"
       },
       "ResourceCost": {
-        "plastic": "[Mass] * 0.3",
+        "hydrocarbons": "[Mass] * 0.15",
         "copper": "[Mass] * 0.05",
         "aluminium": "[Mass] * 0.2",
         "silicon": "[Mass] * 0.4",
@@ -616,8 +618,8 @@
         "BuildPointCost": "[Mass] * 0.2 * Pow(PropertyValue('Size') / 75, 0.15)"
       },
       "ResourceCost": {
-        "iron": "[Mass] * 0.4",
-        "stainless-steel": "[Mass] * 0.4",
+        "iron": "[Mass] * 0.756",
+        "chromium": "[Mass] * 0.044",
         "copper": "[Mass] * 0.2"
       },
       "ComponentType": "Energy Generator",
@@ -670,9 +672,9 @@
     "Type": "ComponentTemplate",
     "Payload": {
       "UniqueID": "oxidiser-turbine",
-      "Name": "Methalox Turbine",
+      "Name": "Oxidiser Turbine",
       "Formulas": {
-        "Description": "Burns methalox, which carries its own oxidiser, so it works anywhere. Expensive to run.",
+        "Description": "Burns Hydrogen with its own oxidiser, so it works anywhere. Expensive to run.",
         "Mass": "PropertyValue('Size') * 2000.0",
         "Volume": "[Mass]",
         "HTK": "0.5",
@@ -682,7 +684,8 @@
         "BuildPointCost": "[Mass] * 0.2 * Pow(PropertyValue('Size') / 5, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.6",
+        "iron": "[Mass] * 0.534",
+        "chromium": "[Mass] * 0.066",
         "aluminium": "[Mass] * 0.2",
         "copper": "[Mass] * 0.2"
       },
@@ -726,7 +729,7 @@
           "Name": "DBargsPlant",
           "DescriptionFormula": "''",
           "GuiHint": "None",
-          "PropertyFormula": "AtbConstrArgs('methalox', PropertyValue('Fuel Heating Value'), PropertyValue('Efficiency'), PropertyValue('Size'), 0)",
+          "PropertyFormula": "AtbConstrArgs('hydrogen', PropertyValue('Fuel Heating Value'), PropertyValue('Efficiency'), PropertyValue('Size'), 0)",
           "AttributeType": "Pulsar4X.Energy.PowerPlantAtb"
         }
       ]
@@ -748,8 +751,8 @@
         "BuildPointCost": "[Mass] * 0.2 * Pow(PropertyValue('Size') / 75, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.5",
-        "iron": "[Mass] * 0.3",
+        "iron": "[Mass] * 0.745",
+        "chromium": "[Mass] * 0.055",
         "copper": "[Mass] * 0.2"
       },
       "ComponentType": "Energy Generator",
@@ -792,7 +795,7 @@
           "Name": "DBargsPlant",
           "DescriptionFormula": "''",
           "GuiHint": "None",
-          "PropertyFormula": "AtbConstrArgs('fissile-fuels', PropertyValue('Fuel Heating Value'), PropertyValue('Efficiency'), PropertyValue('Size'), 0)",
+          "PropertyFormula": "AtbConstrArgs('uranium', PropertyValue('Fuel Heating Value'), PropertyValue('Efficiency'), PropertyValue('Size'), 0)",
           "AttributeType": "Pulsar4X.Energy.PowerPlantAtb"
         }
       ]
@@ -817,7 +820,7 @@
         "aluminium": "[Mass] * 0.4",
         "silicon": "[Mass] * 0.3",
         "copper": "[Mass] * 0.1",
-        "plastic": "[Mass] * 0.2"
+        "hydrocarbons": "[Mass] * 0.1"
       },
       "ComponentType": "Energy Generator",
       "MountType": "PlanetInstallation",
@@ -894,7 +897,7 @@
         "BuildPointCost": "[Mass] * 0.5 * Pow(PropertyValue('Mass') / 1000000, 0.15)"
       },
       "ResourceCost": {
-        "plastic": "[Mass] * 0.2",
+        "hydrocarbons": "[Mass] * 0.1",
         "copper": "[Mass] * 0.2",
         "lithium": "[Mass] * 0.4",
         "graphite": "[Mass] * 0.1",

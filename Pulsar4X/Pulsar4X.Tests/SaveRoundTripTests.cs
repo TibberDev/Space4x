@@ -103,7 +103,7 @@ public class SaveRoundTripTests
         var sol = game.Systems.Single(s => s.ID == "system-sol");
         var colony = sol.GetAllEntitiesWithDataBlob<Pulsar4X.Ships.LaunchComplexDB>().Single();
         int colonyId = colony.Id;
-        colony.GetDataBlob<Pulsar4X.Ships.LaunchComplexDB>().Pads.Values.Single().LaunchFuelId = "methalox";
+        colony.GetDataBlob<Pulsar4X.Ships.LaunchComplexDB>().Pads.Values.Single().LaunchFuelId = "hydrocarbons";
 
         string json = Game.Save(game);
         Assert.That(json, Does.Contain("\"LaunchFuelId\""));
@@ -111,7 +111,7 @@ public class SaveRoundTripTests
         Game.EntityIDCounter = 0;
         var loaded = Game.Load(json);
         var loadedColony = SolEntity(loaded, colonyId);
-        Assert.That(loadedColony.GetDataBlob<Pulsar4X.Ships.LaunchComplexDB>().Pads.Values.Single().LaunchFuel, Is.EqualTo("methalox"));
+        Assert.That(loadedColony.GetDataBlob<Pulsar4X.Ships.LaunchComplexDB>().Pads.Values.Single().LaunchFuel, Is.EqualTo("hydrocarbons"));
 
         // A save from before the launch fuel choice has no LaunchFuelId on pads or designs.
         string old = System.Text.RegularExpressions.Regex.Replace(json, @",\s*""LaunchFuelId""\s*:\s*(""[^""]*""|null)", "");
@@ -122,10 +122,10 @@ public class SaveRoundTripTests
         var oldPad = SolEntity(oldLoaded, colonyId).GetDataBlob<Pulsar4X.Ships.LaunchComplexDB>().Pads.Values.Single();
         Assert.That(oldPad.LaunchFuelId, Is.Null);
         Assert.That(oldPad.LaunchFuel, Is.EqualTo(Pulsar4X.Ships.LaunchComplexAtb.DefaultLaunchFuel));
-        Assert.That(Pulsar4X.Ships.LaunchComplexAtb.DefaultLaunchFuel, Is.EqualTo("rp-1"));
+        Assert.That(Pulsar4X.Ships.LaunchComplexAtb.DefaultLaunchFuel, Is.EqualTo("hydrocarbons"));
         var faction = oldLoaded.Factions[oldLoaded.LocalHumanFactionId].GetDataBlob<FactionInfoDB>();
         if (faction.ComponentDesigns.TryGetValue("default-design-launch-complex", out var design))
-            Assert.That(design.GetAttribute<Pulsar4X.Ships.LaunchComplexAtb>().LaunchFuel, Is.EqualTo("rp-1"));
+            Assert.That(design.GetAttribute<Pulsar4X.Ships.LaunchComplexAtb>().LaunchFuel, Is.EqualTo("hydrocarbons"));
     }
 
     static Entity SolEntity(Game game, int id)
@@ -187,7 +187,7 @@ public class SaveRoundTripTests
             TargetEntityID = 42,
             ParentGoalId = "parent-goal",
             Message = "two rocks left",
-            CargoId = "methalox",
+            CargoId = "hydrocarbons",
             SourceEntityId = 5,
             DestEntityId = 9,
             UnitShare = 100,
@@ -209,7 +209,7 @@ public class SaveRoundTripTests
         Assert.That(back.ParentGoalId, Is.EqualTo("parent-goal"));
         Assert.That(back.Type, Is.EqualTo(GoalType.SurveyStanding));
         Assert.That(back.TargetEntityID, Is.EqualTo(42));
-        Assert.That(back.CargoId, Is.EqualTo("methalox"));
+        Assert.That(back.CargoId, Is.EqualTo("hydrocarbons"));
         Assert.That(back.SourceEntityId, Is.EqualTo(5));
         Assert.That(back.DestEntityId, Is.EqualTo(9));
         Assert.That(back.UnitShare, Is.EqualTo(100));
@@ -314,6 +314,7 @@ public class SaveRoundTripTests
         var store = new ModDataStore();
         modLoader.LoadModManifest("Data/basemod/modInfo.json", store);
         modLoader.LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", store);
+        TestMaterials.AddSteel(store);
 
         var game = new Game(new NewGameSettings { MaxSystems = 1, CreatePlayerFaction = false }, store);
         game.Settings.EnforceSingleThread = true;

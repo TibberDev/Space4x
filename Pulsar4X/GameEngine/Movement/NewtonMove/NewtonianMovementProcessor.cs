@@ -339,7 +339,7 @@ namespace Pulsar4X.Movement
             var ft = db.FuelType;
             var ev = db.ExhaustVelocity;
             var totalMass = parentEntity.GetDataBlob<MassVolumeDB>().MassTotal;
-            ProcessedMaterial fuel = factionDataStore.CargoGoods.GetMaterial(ft);
+            ICargoable fuel = factionDataStore.CargoGoods.GetAny(ft);
 
             double fuelMass = 0;
             if(parentEntity.HasDataBlob<CargoStorageDB>())

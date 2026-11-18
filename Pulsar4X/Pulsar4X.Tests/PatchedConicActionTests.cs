@@ -63,7 +63,7 @@ public class PatchedConicActionTests
         _game.Settings.EnforceSingleThread = true;
         _faction = result.Value.faction;
         _starship = _game.Systems.SelectMany(s => s.GetAllEntitiesWithDataBlob<ShipInfoDB>()).Single();
-        _methalox = _faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+        _methalox = _faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
         Assert.That(_starship.GetName(_faction.Id), Is.EqualTo("Starship I"));
         Assert.That(_starship.GetDataBlob<NewtonThrustAbilityDB>().DeltaV, Is.GreaterThan(10_000));
     }

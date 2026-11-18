@@ -13,15 +13,15 @@ namespace Pulsar4X.Ships
         /// The launch fuel of a design or pad that has none: a save from before the design chose
         /// one, or a pad made without a design. Matches the template's default.
         /// </summary>
-        public const string DefaultLaunchFuel = "rp-1";
+        public const string DefaultLaunchFuel = "hydrocarbons";
 
         /// <summary>The propellants a launch complex may burn. The one list every launch fuel id is checked against.</summary>
-        public static readonly IReadOnlyList<string> AllowedLaunchFuels = new[] { "rp-1", "methalox", "hydrolox" };
+        public static readonly IReadOnlyList<string> AllowedLaunchFuels = new[] { "hydrocarbons", "hydrogen" };
 
         /// <summary>
         /// The launch fuel to use for an id from a design, a pad or a save: the id when it is on
         /// <see cref="AllowedLaunchFuels"/>, else <see cref="DefaultLaunchFuel"/>. Null, empty,
-        /// whitespace, unknown ids and plant fuels such as fissile fuels all give rp-1.
+        /// whitespace, unknown ids and plant fuels such as uranium all give hydrocarbons.
         /// </summary>
         public static string NormalizeLaunchFuel(string? fuelId)
         {

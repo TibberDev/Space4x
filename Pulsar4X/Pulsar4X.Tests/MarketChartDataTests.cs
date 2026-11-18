@@ -208,12 +208,12 @@ public class MarketChartDataTests
     {
         var checkedIds = new HashSet<string> { "iron" };
 
-        Assert.That(MarketChartData.ToggleCompare(checkedIds, "methalox"), Is.True);
+        Assert.That(MarketChartData.ToggleCompare(checkedIds, "hydrocarbons"), Is.True);
         Assert.That(MarketChartData.ToggleCompare(checkedIds, "silicon"), Is.True);
-        Assert.That(checkedIds, Is.EquivalentTo(new[] { "iron", "methalox", "silicon" }));
+        Assert.That(checkedIds, Is.EquivalentTo(new[] { "iron", "hydrocarbons", "silicon" }));
 
         Assert.That(MarketChartData.ToggleCompare(checkedIds, "iron"), Is.False);
-        Assert.That(checkedIds, Is.EquivalentTo(new[] { "methalox", "silicon" }));
+        Assert.That(checkedIds, Is.EquivalentTo(new[] { "hydrocarbons", "silicon" }));
     }
 
     [Test]

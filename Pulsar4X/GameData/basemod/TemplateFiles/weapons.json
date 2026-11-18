@@ -16,8 +16,9 @@
       },
       "ResourceCost": {
         "aluminium": "[Mass] * 0.3",
-        "stainless-steel": "[Mass] * 0.1",
-        "plastic": "[Mass] * 0.1",
+        "iron": "[Mass] * 0.089",
+        "chromium": "[Mass] * 0.011",
+        "hydrocarbons": "[Mass] * 0.05",
         "copper": "[Mass] * 0.1",
         "tungsten": "[Mass] * 0.2",
         "titanium": "[Mass] * 0.1",
@@ -108,7 +109,6 @@
           "StepFormula": "1",
           "PropertyFormula": "10000"
         },
-
         {
           "Name": "Focal Length",
           "Units": "M",
@@ -129,7 +129,6 @@
           "StepFormula": "0.1",
           "PropertyFormula": "0.5"
         },
-
         {
           "Name": "Radiator Volume",
           "Units": "L",
@@ -244,8 +243,9 @@
       },
       "ResourceCost": {
         "aluminium": "[Mass] * 0.3",
-        "stainless-steel": "[Mass] * 0.1",
-        "plastic": "[Mass] * 0.1",
+        "iron": "[Mass] * 0.089",
+        "chromium": "[Mass] * 0.011",
+        "hydrocarbons": "[Mass] * 0.05",
         "copper": "[Mass] * 0.1",
         "tungsten": "[Mass] * 0.2",
         "titanium": "[Mass] * 0.1",
@@ -334,7 +334,6 @@
           "PropertyFormula": "AtbConstrArgs(PropertyValue('Max Mass'), PropertyValue('ROF'), PropertyValue('Launch Force'))",
           "AttributeType": "Pulsar4X.Weapons.MissileLauncherAtb"
         }
-
       ]
     }
   }

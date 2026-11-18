@@ -19,7 +19,7 @@ namespace Pulsar4X.Tests;
 public class CeresDepotTests
 {
     [Test]
-    public void PlacedColony_HasMarket_Fuel_Refinery_Storage_AndAnAdministrator()
+    public void PlacedColony_HasMarket_Fuel_Storage_AndAnAdministrator()
     {
         var modLoader = new ModLoader();
         var store = new ModDataStore();
@@ -51,10 +51,10 @@ public class CeresDepotTests
         Assert.That(stores["general-storage"].MaxVolume, Is.GreaterThan(0));
         Assert.That(stores["fuel-storage"].MaxVolume, Is.EqualTo(6000));
 
-        Assert.That(
-            colony.GetDataBlob<IndustryAbilityDB>().ProductionLines.Values
-                .Any(line => line.IndustryTypeRates.ContainsKey("refining")),
-            Is.True);
+        // Mined-only resources: the depot sells its fuel as mined, with no refinery.
+        Assert.That(colony.HasDataBlob<IndustryAbilityDB>()
+            && colony.GetDataBlob<IndustryAbilityDB>().ProductionLines.Values.Any(line => line.IndustryTypeRates.ContainsKey("refining")),
+            Is.False);
 
         var seat = colony.GetDataBlob<AdminSpaceDB>().CommanderSeats.Single();
         Assert.That(sol.TryGetEntityById(seat.CommanderID, out var admin), Is.True);
@@ -87,13 +87,13 @@ public class CeresDepotTests
             .Single(c => c.GetDataBlob<NameDB>().DefaultName == "Luna Concord");
 
         var depotPolicy = depot.GetDataBlob<ColonyMarketPolicyDB>();
-        Assert.That(depotPolicy.Rows["methalox"].Ask, Is.EqualTo(EnergyPriceOracle.FuelAsk(game)));
+        Assert.That(depotPolicy.Rows["hydrocarbons"].Ask, Is.EqualTo(EnergyPriceOracle.FuelAsk(game)));
         Assert.That(depotPolicy.Rows["iron"].Bid, Is.LessThan(depotPolicy.Rows["iron"].Ask));
         Assert.That(depotPolicy.Rows["iron"].Ask, Is.EqualTo(EnergyPriceOracle.IronAsk(game)));
         Assert.That(depotPolicy.Rows["iron"].Bid, Is.EqualTo(EnergyPriceOracle.IronBid(game)));
         Assert.That(depotPolicy.Rows["water"].Ask, Is.EqualTo(EnergyPriceOracle.WaterAsk(game)));
 
-        Assert.That(MarketBook.TryGet(depot, "methalox", out var fuel), Is.True);
+        Assert.That(MarketBook.TryGet(depot, "hydrocarbons", out var fuel), Is.True);
         Assert.That(fuel.Ask, Is.EqualTo(EnergyPriceOracle.FuelAsk(game)));
         Assert.That(fuel.SellQuantity, Is.GreaterThan(0));
         Assert.That(MarketBook.TryGet(depot, "iron", out var iron), Is.True);

@@ -21,6 +21,8 @@ namespace Pulsar4X.Industry
             VolumePerUnit = blueprint.VolumePerUnit;
             Abundance = blueprint.Abundance;
             ExtractionEnergy = blueprint.ExtractionEnergy;
+            Formulas = blueprint.Formulas;
+            PartMatUniqueID = blueprint.PartMatUniqueID;
         }
     }
 }

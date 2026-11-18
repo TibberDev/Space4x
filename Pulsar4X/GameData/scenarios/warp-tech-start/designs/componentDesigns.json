@@ -184,7 +184,7 @@
       "TemplateId": "conventional-engine",
       "Properties": [
         { "Key": "Mass", "Value": 8400 },
-        { "Key": "Fuel Type", "Value": "rp-1" }
+        { "Key": "Fuel Type", "Value": "hydrocarbons" }
       ]
     }
   },
@@ -300,7 +300,7 @@
       "TemplateId": "conventional-engine",
       "Properties": [
         { "Key": "Mass", "Value": 470 },
-        { "Key": "Fuel Type", "Value": "rp-1" }
+        { "Key": "Fuel Type", "Value": "hydrocarbons" }
       ]
     }
   },
@@ -402,7 +402,7 @@
       "TemplateId": "conventional-engine",
       "Properties": [
         { "Key": "Mass", "Value": 2000 },
-        { "Key": "Fuel Type", "Value": "methalox" }
+        { "Key": "Fuel Type", "Value": "hydrocarbons" }
       ]
     }
   },
@@ -475,23 +475,12 @@
   {
     "Type": "ComponentDesign",
     "Payload": {
-      "UniqueId": "default-design-refinery",
-      "Name": "Prefab Refinery",
-      "TemplateId": "refinery",
-      "Properties": [
-        { "Key": "Size", "Value": 1000 }
-      ]
-    }
-  },
-  {
-    "Type": "ComponentDesign",
-    "Payload": {
       "UniqueId": "default-design-rs-25",
       "Name": "RS-25",
       "TemplateId": "conventional-engine",
       "Properties": [
         { "Key": "Mass", "Value": 3200 },
-        { "Key": "Fuel Type", "Value": "hydrolox" }
+        { "Key": "Fuel Type", "Value": "hydrogen" }
       ]
     }
   },
@@ -637,14 +626,6 @@
       "Properties": [
         { "Key": "Size", "Value": 1000 }
       ]
-    }
-  },
-  {
-    "Type": "ComponentDesign",
-    "Payload": {
-      "UniqueId": "default-design-refinery-site",
-      "Name": "Refinery",
-      "TemplateId": "refinery-site"
     }
   },
   {

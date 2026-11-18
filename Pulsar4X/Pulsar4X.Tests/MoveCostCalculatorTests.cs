@@ -126,13 +126,13 @@ public class MoveCostCalculatorTests
             Assert.That(cost.EnergyUsed_kJ, Is.EqualTo(expected).Within(1e-6));
             // Energy phase 6: no reaction mass, but the steam turbine burns fissile fuel for every kJ:
             // 50 kW of core heat at 1 kg per 40e9 kJ makes 15 kW, so 50 / 40e9 / 15 kg per kJ.
-            Assert.That(cost.FuelUsed_kg.Keys, Is.EquivalentTo(new[] { "fissile-fuels" }));
+            Assert.That(cost.FuelUsed_kg.Keys, Is.EquivalentTo(new[] { "uranium" }));
             // Bubble creation and collapse come out of the store and are made back through the
             // battery's charge loss: the plant makes storeKJ / efficiency for them.
             double storeKJ = ship.BubbleCreationCost + ship.BubbleCollapseCost;
             Assert.That(ship.ChargeEfficiency, Is.InRange(0.9, 1.0));
             double made = expected - storeKJ + storeKJ / ship.ChargeEfficiency;
-            Assert.That(cost.FuelUsed_kg["fissile-fuels"], Is.EqualTo(made * 50 / 40e9 / 15).Within(1e-12));
+            Assert.That(cost.FuelUsed_kg["uranium"], Is.EqualTo(made * 50 / 40e9 / 15).Within(1e-12));
         }
         Assert.That(costs[1].EnergyUsed_kJ, Is.EqualTo(costs[0].EnergyUsed_kJ));
         Assert.That(costs[2].EnergyUsed_kJ, Is.EqualTo(costs[0].EnergyUsed_kJ));

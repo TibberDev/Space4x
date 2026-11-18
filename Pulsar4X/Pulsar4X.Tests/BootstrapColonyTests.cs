@@ -462,6 +462,27 @@ public class BootstrapColonyTests
     static long Units(Entity holder, ICargoable item) => holder.GetDataBlob<CargoStorageDB>().GetUnitsStored(item, false);
 
     /// <summary>Runs a queued transfer to the end, like the cargo processor does between pulses.</summary>
+    [Test]
+    public void FleetBootstrap_FuelInAPackage_NeedsFreeTankRoom()
+    {
+        // Mined-only resources: a package line of fuel loads only into fuel tanks. A hauler whose tanks
+        // are full takes the other lines and leaves the fuel for a hauler with room.
+        var scene = Build(crates: 0);
+        var fuel = scene.Info.Data.CargoGoods.GetAny("hydrocarbons")!;
+        var storage = scene.Ship.GetDataBlob<CargoStorageDB>();
+        long free = storage.GetFreeUnitSpace(fuel);
+        storage.AddCargoByUnit(fuel, free);
+        Assert.That(storage.GetFreeUnitSpace(fuel), Is.LessThan(100), "the tanks are full");
+
+        StockResources(scene, new Dictionary<string, long> { ["hydrocarbons"] = 100 });
+        Assert.That(ShipmentBook.TrySeal(scene.Source, scene.Dest, new[] { (fuel, 100L) }, "test", out var made, out var reason), Is.True, reason);
+        var shipment = made.Single();
+        var goal = new Goal(GoalType.DeliverShipment) { CargoId = shipment.UniqueID };
+        var plan = DeliverShipmentPlan.PlanLoad(scene.Ship, goal, scene.Source, shipment);
+        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Failed));
+        Assert.That(plan.Message, Is.EqualTo("nothing fits"));
+    }
+
     static void Drain(Entity holder)
     {
         holder.GetDataBlob<CargoStorageDB>().TransferRate = 1_000_000;
@@ -900,30 +921,38 @@ public class BootstrapColonyTests
         scene.Ship.GetDataBlob<ActionQueueDB>().ActionList.Remove(mount);
         trip.Status = GoalStatus.Completed;
 
-        // Now the resources go, as a DeliverShipment of the resource package.
-        var plan = PlanFleet(fleet, goal, scene);
-        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Active), plan.Message);
-        var (ship, haul) = plan.SubGoals.Single();
-        Assert.That(ship.Id, Is.EqualTo(scene.Ship.Id));
-        Assert.That(haul.Type, Is.EqualTo(GoalType.DeliverShipment));
-        Assert.That(haul.Type, Is.Not.EqualTo(GoalType.MoveGoods));
-        Assert.That(goal.BootstrapPackageIds, Does.Contain(haul.CargoId));
-        Assert.That(BootstrapPackage.IsCratePackage(Package(scene, haul.CargoId)), Is.False);
-        scene.Ship.SetDataBlob(new GoalsDB { ActiveGoal = haul, GivenGoal = haul });
-
-        // Load, unload and unpack the package.
-        for (int guard = 0; guard < 6; guard++)
+        // Now the resources go, as a DeliverShipment of each resource package. Sealing makes one package
+        // per cargo type, and Hydrocarbons is fuel cargo since mined-only resources, so there are two.
+        PlanResult done = default;
+        for (int package = 0; package < 3; package++)
         {
-            var step = new DeliverShipmentPlan().Plan(scene.Ship, haul, Now(scene));
-            if (step.Status != GoalStatus.Active)
+            var plan = PlanFleet(fleet, goal, scene);
+            if (plan.Status != GoalStatus.Active || plan.SubGoals.Count == 0)
+            {
+                done = plan;
                 break;
-            Assert.That(step.Message, Is.EqualTo("Loading").Or.EqualTo("Unloading"), step.Message);
-            Drain(step.Message == "Unloading" ? scene.Dest : scene.Source);
-            if (!Sealed(scene, haul.CargoId))
-                break;
+            }
+            var (ship, haul) = plan.SubGoals.Single();
+            Assert.That(ship.Id, Is.EqualTo(scene.Ship.Id));
+            Assert.That(haul.Type, Is.EqualTo(GoalType.DeliverShipment));
+            Assert.That(haul.Type, Is.Not.EqualTo(GoalType.MoveGoods));
+            Assert.That(goal.BootstrapPackageIds, Does.Contain(haul.CargoId));
+            Assert.That(BootstrapPackage.IsCratePackage(Package(scene, haul.CargoId)), Is.False);
+            scene.Ship.SetDataBlob(new GoalsDB { ActiveGoal = haul, GivenGoal = haul });
+
+            // Load, unload and unpack the package.
+            for (int guard = 0; guard < 6; guard++)
+            {
+                var step = new DeliverShipmentPlan().Plan(scene.Ship, haul, Now(scene));
+                if (step.Status != GoalStatus.Active)
+                    break;
+                Assert.That(step.Message, Is.EqualTo("Loading").Or.EqualTo("Unloading"), step.Message);
+                Drain(step.Message == "Unloading" ? scene.Dest : scene.Source);
+                if (!Sealed(scene, haul.CargoId))
+                    break;
+            }
+            haul.Status = GoalStatus.Completed;
         }
-        haul.Status = GoalStatus.Completed;
-        var done = PlanFleet(fleet, goal, scene);
         Assert.That(done.Status, Is.EqualTo(GoalStatus.Completed), done.Message);
         Assert.That(done.Message, Is.EqualTo("Mounted 1 crate, hauled the resources"));
         foreach (var (cargoId, amount) in needs)
@@ -1564,8 +1593,11 @@ public class BootstrapColonyTests
         scene.Source = scene.ColonyAt(scene.Planet, faction, "Source Colony");
         scene.Dest = scene.ColonyAt(scene.Planet, faction, "Empty Colony");
         scene.Source.GetDataBlob<CargoStorageDB>().TypeStores["general-storage"] = new TypeStore(1_000_000_000);
+        // Hydrocarbons is fuel cargo since mined-only resources, and site recipes use a little of it.
+        scene.Source.GetDataBlob<CargoStorageDB>().TypeStores["fuel-storage"] = new TypeStore(1_000_000_000);
         // Small enough that the free unit count of a light resource stays inside an int.
         scene.Dest.GetDataBlob<CargoStorageDB>().TypeStores["general-storage"] = new TypeStore(1_000);
+        scene.Dest.GetDataBlob<CargoStorageDB>().TypeStores["fuel-storage"] = new TypeStore(1_000);
         scene.Ship = ShipFactory.CreateShip(
             info.ShipDesigns["default-ship-design-colony-ship"], faction, scene.Planet, "Colony Ship");
         scene.Ship.GetDataBlob<ShipInfoDB>().CommanderID = 1;

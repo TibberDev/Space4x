@@ -2,14 +2,6 @@
   {
     "Type": "IndustryType",
     "Payload": {
-      "UniqueID": "refining",
-      "Name": "Refining",
-      "EnergyPerPoint": 7
-    }
-  },
-  {
-    "Type": "IndustryType",
-    "Payload": {
       "UniqueID": "component-construction",
       "Name": "Component Construction",
       "EnergyPerPoint": 10

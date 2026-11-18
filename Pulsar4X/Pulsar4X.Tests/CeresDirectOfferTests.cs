@@ -44,7 +44,7 @@ public class CeresDirectOfferTests
         Assert.That(iron.SellQuantity, Is.EqualTo(stock));
         Assert.That(iron.BuyQuantity, Is.EqualTo(0));
 
-        Assert.That(MarketBook.TryGet(depot, "methalox", out var fuel), Is.True);
+        Assert.That(MarketBook.TryGet(depot, "hydrocarbons", out var fuel), Is.True);
         Assert.That(fuel.Bid, Is.EqualTo(0));
         Assert.That(fuel.BuyQuantity, Is.EqualTo(0));
         Assert.That(MarketBook.TryGet(depot, "water", out var water), Is.True);
@@ -326,7 +326,7 @@ public class CeresDirectOfferTests
 
     static long FuelUnits(Entity ship, Entity faction)
     {
-        var fuel = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetMaterial("methalox");
+        var fuel = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons")!;
         var cargo = ship.GetDataBlob<CargoStorageDB>();
         if (!cargo.TypeStores.TryGetValue(fuel.CargoTypeID, out var store))
             return 0;

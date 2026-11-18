@@ -43,6 +43,7 @@ public class EnergyDemandRefreshTests
         _store = new ModDataStore();
         new ModLoader().LoadModManifest("Data/basemod/modInfo.json", _store);
         new ModLoader().LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", _store);
+        TestMaterials.AddSteel(_store);
         _game = new Game(new NewGameSettings { MaxSystems = 1, CreatePlayerFaction = false }, _store);
         _game.Settings.EnforceSingleThread = true;
         StarSystemFactory.LoadFromBlueprint(_game, _store.Systems["system-sol"]);

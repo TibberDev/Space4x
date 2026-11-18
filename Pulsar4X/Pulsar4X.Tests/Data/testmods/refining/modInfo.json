@@ -1,0 +1,10 @@
+{
+  "Author": "Pulsar4X tests",
+  "ModName": "Refining fixture",
+  "Version": "0.1",
+  "Namespace": "Pulsar4x",
+  "DefaultEnabled": false,
+  "DataFiles": [
+    "refining.json"
+  ]
+}

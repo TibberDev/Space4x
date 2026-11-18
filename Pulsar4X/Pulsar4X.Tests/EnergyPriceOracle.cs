@@ -42,10 +42,10 @@ static class EnergyPriceOracle
     public static double Iron_kWh => Ext("iron");
     public static double Water_kWh => Ext("water");
 
-    /// <summary>materials.json methalox: 4,250 kWh and 4,250 hydrocarbons per 8,500 units.</summary>
-    public static double Methalox_kWh => (4250 + 4250 * Ext("hydrocarbons")) / 8500;
+    /// <summary>Hydrocarbons, the chemical fuel: mined and burned as it is, so extraction only.</summary>
+    public static double Hydrocarbons_kWh => Ext("hydrocarbons");
 
-    /// <summary>materials.json stainless steel: 70 kWh, 88 iron + 11 chromium + 1 hydrocarbons per 100 units.</summary>
+    /// <summary>The test stainless steel recipe (TestMaterials): 70 kWh, 88 iron + 11 chromium + 1 hydrocarbons per 100 units.</summary>
     public static double Steel_kWh => (70 + 88 * Ext("iron") + 11 * Ext("chromium") + 1 * Ext("hydrocarbons")) / 100;
 
     /// <summary>
@@ -56,22 +56,23 @@ static class EnergyPriceOracle
     /// Energy per leg = 4e6/3 kJ + 15 kW x distance / speed; over the 1,000,000 kg hold.
     /// </summary>
     /// <summary>
-    /// Embodied energy of fissile fuel, kWh/kg, from its recipe in the data (checked by
+    /// Embodied energy of uranium, the reactor fuel, kWh/kg: mined and burned as it is (checked by
     /// EnergyPhase6Tests against EmbodiedEnergy).
     /// </summary>
-    public const double Fissile_kWhPerKg = 400 + 100 * 10.0 + 10 * 0.3; // EnergyCost + 100 fissionables x 10 + 10 hydrocarbons x 0.3, one 1 kg unit
+    public static double Uranium_kWhPerKg => Ext("uranium");
 
     public static double Delivery_kWhPerKg(Game game)
     {
         double au = game.Settings.DepotDeliveryDistance_AU;
         if (!(au > 0))
             return 0;
-        // Crew plan phase 4: the miner's 4 t reactor (+2,000 kg dry, 49,422 kg) slows its drive from 42,174 m/s.
-        double speed = 40467 * 0.5;
+        // Crew plan phase 4: the miner's 4 t reactor (+2,000 kg dry) slows its drive from 42,174 m/s; mined-only resources
+        // (+49 kg of Hydrocarbons armour, 49,471 kg) from 40,467 m/s.
+        double speed = 40427 * 0.5;
         double legKJ = 4e6 / 3 + 15 * (au * UniversalConstants.Units.MetersPerAu / speed);
-        // Energy phase 6: the turbine's fissile fuel for that energy (50 kW of heat per 15 kW,
+        // Energy phase 6: the turbine's uranium for that energy (50 kW of heat per 15 kW,
         // 40e9 kJ per kg) at its embodied energy.
-        double fuelKWh = legKJ * 50 / 40e9 / 15 * Fissile_kWhPerKg;
+        double fuelKWh = legKJ * 50 / 40e9 / 15 * Uranium_kWhPerKg;
         int legs = game.Settings.DepotDeliveryRoundTrip ? 2 : 1;
         return legs * (legKJ / 3600 + fuelKWh) / 1_000_000;
     }
@@ -83,7 +84,7 @@ static class EnergyPriceOracle
     public static decimal Bid(Game game, double kWh)
         => Cents(kWh * game.Settings.CreditsPerKWh * (1 + game.Settings.PriceMarkup) * game.Settings.SeedBidShare);
 
-    public static decimal FuelAsk(Game game) => Ask(game, Methalox_kWh + Delivery_kWhPerKg(game));
+    public static decimal FuelAsk(Game game) => Ask(game, Hydrocarbons_kWh + Delivery_kWhPerKg(game));
     public static decimal IronAsk(Game game) => Ask(game, Iron_kWh + Delivery_kWhPerKg(game));
     public static decimal IronBid(Game game) => Bid(game, Iron_kWh + Delivery_kWhPerKg(game));
     public static decimal WaterAsk(Game game) => Ask(game, Water_kWh + Delivery_kWhPerKg(game));

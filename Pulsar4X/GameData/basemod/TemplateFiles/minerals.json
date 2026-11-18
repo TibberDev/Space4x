@@ -4,11 +4,11 @@
     "Payload": {
       "UniqueID": "hydrocarbons",
       "Name": "Hydrocarbons",
-      "Description": "Crude Oil, Coal and Natural Gas",
-      "CargoTypeID": "general-storage",
+      "Description": "Crude oil, coal and natural gas. Burned straight as rocket fuel, with the oxidiser folded in.",
+      "CargoTypeID": "fuel-storage",
       "MassPerUnit": 1.0,
       "ExtractionEnergy": 0.3,
-      "VolumePerUnit": 0.0011111,
+      "VolumePerUnit": 0.000835561,
       "Abundance": {
         "Terrestrial": 0.2,
         "GasGiant": 0.5,
@@ -18,6 +18,12 @@
         "DwarfPlanet": 0.4,
         "Moon": 0.2,
         "GasDwarf": 0.4
+      },
+      "PartMatUniqueID": "delrin",
+      "Formulas": {
+        "ExhaustVelocity": "3615",
+        "ChemicalEnergy": "11500",
+        "FuelType": "conventional"
       }
     }
   },
@@ -40,7 +46,8 @@
         "DwarfPlanet": 0.1,
         "Moon": 0.2,
         "GasDwarf": 0.01
-      }
+      },
+      "PartMatUniqueID": "stainless-steel"
     }
   },
   {
@@ -121,13 +128,13 @@
       "ExtractionEnergy": 5.0,
       "VolumePerUnit": 0.0018691589,
       "Abundance": {
-        "Terrestrial": 0.00002,
+        "Terrestrial": 2e-05,
         "GasGiant": 0.0,
         "IceGiant": 0.001,
         "Asteroid": 0.0001,
-        "Comet": 0.00001,
-        "DwarfPlanet": 0.00005,
-        "Moon": 0.00001,
+        "Comet": 1e-05,
+        "DwarfPlanet": 5e-05,
+        "Moon": 1e-05,
         "GasDwarf": 0.0
       }
     }
@@ -157,13 +164,13 @@
   {
     "Type": "Mineral",
     "Payload": {
-      "UniqueID": "fissionables",
-      "Name": "Fissionables",
-      "Description": "Un-refined Fissionable Metals",
-      "CargoTypeID": "general-storage",
+      "UniqueID": "uranium",
+      "Name": "Uranium",
+      "Description": "Fissile ore, burned directly as reactor fuel.",
+      "CargoTypeID": "fuel-storage",
       "MassPerUnit": 1.0,
       "ExtractionEnergy": 10.0,
-      "VolumePerUnit": 0.0000531915,
+      "VolumePerUnit": 5.31915e-05,
       "Abundance": {
         "Terrestrial": 0.001,
         "GasGiant": 0.0,
@@ -229,15 +236,15 @@
       "CargoTypeID": "general-storage",
       "MassPerUnit": 1.0,
       "ExtractionEnergy": 20.0,
-      "VolumePerUnit": 0.000052,
+      "VolumePerUnit": 5.2e-05,
       "Abundance": {
-        "Terrestrial": 0.00001,
+        "Terrestrial": 1e-05,
         "GasGiant": 0.0,
         "IceGiant": 0.0,
-        "Asteroid": 0.000001,
+        "Asteroid": 1e-06,
         "Comet": 0.0,
-        "DwarfPlanet": 0.000005,
-        "Moon": 0.000001,
+        "DwarfPlanet": 5e-06,
+        "Moon": 1e-06,
         "GasDwarf": 0.0
       }
     }
@@ -261,6 +268,33 @@
         "DwarfPlanet": 0.05,
         "Moon": 0.01,
         "GasDwarf": 0.01
+      }
+    }
+  },
+  {
+    "Type": "Mineral",
+    "Payload": {
+      "UniqueID": "hydrogen",
+      "Name": "Hydrogen",
+      "Description": "Collected from gas giants, ice and comets. Fuel for hydrogen and nuclear-thermal engines.",
+      "CargoTypeID": "fuel-storage",
+      "MassPerUnit": 1.0,
+      "ExtractionEnergy": 0.3,
+      "VolumePerUnit": 0.002777778,
+      "Formulas": {
+        "ExhaustVelocity": "4462",
+        "ChemicalEnergy": "13300",
+        "FuelType": "conventional ntr"
+      },
+      "Abundance": {
+        "Terrestrial": 0.01,
+        "GasGiant": 0.6,
+        "IceGiant": 0.5,
+        "Asteroid": 0.01,
+        "Comet": 0.3,
+        "DwarfPlanet": 0.1,
+        "Moon": 0.05,
+        "GasDwarf": 0.5
       }
     }
   },
@@ -315,9 +349,9 @@
       "Name": "Regolith",
       "Description": "Loose, heterogeneous material covering solid rock on celestial bodies.",
       "CargoTypeID": "general-storage",
-      "MassPerUnit": 1.0, 
+      "MassPerUnit": 1.0,
       "ExtractionEnergy": 0.02,
-      "VolumePerUnit": 0.0004, 
+      "VolumePerUnit": 0.0004,
       "Abundance": {
         "Terrestrial": 0.9,
         "GasGiant": 0.0,
@@ -327,7 +361,8 @@
         "DwarfPlanet": 0.7,
         "Moon": 0.8,
         "GasDwarf": 0.0
-      }
+      },
+      "PartMatUniqueID": "concrete"
     }
   }
 ]

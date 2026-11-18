@@ -36,7 +36,7 @@ public class GeoSurveyorCostTests
         var game = new Game(new NewGameSettings { MaxSystems = 1, CreatePlayerFaction = false }, store);
         var faction = FactionFactory.CreateBasicFaction(game, "Survey", "SRV", 0);
         var data = faction.GetDataBlob<FactionInfoDB>().Data;
-        foreach (var id in new[] { templateId, "stainless-steel", "plastic", "aluminium", "copper" })
+        foreach (var id in new[] { templateId, "iron", "chromium", "hydrocarbons", "aluminium", "copper" })
             data.Unlock(id);
 
         var slow = Design(faction, data, templateId, 1);
@@ -63,8 +63,11 @@ public class GeoSurveyorCostTests
         Assert.That(design.ResearchCostValue, Is.EqualTo(speed * System.Math.Pow(speed, 0.3)).Within(1), "research");
         Assert.That(design.CreditCost, Is.EqualTo(100 * speed * System.Math.Pow(speed, 0.1)).Within(1), "credits");
         Assert.That(design.IndustryPointCosts, Is.EqualTo(100 * speed * System.Math.Pow(speed, 0.15)).Within(1), "build points");
-        Assert.That(design.ResourceCosts["stainless-steel"], Is.EqualTo(40L * speed));
-        Assert.That(design.ResourceCosts["plastic"], Is.EqualTo(20L * speed));
+        // Mined-only resources: the 40% steel is 89% iron and 11% chromium, and the 20%
+        // plastic is half its mass in hydrocarbons.
+        Assert.That(design.ResourceCosts["iron"], Is.EqualTo(100.0 * speed * 0.356).Within(1));
+        Assert.That(design.ResourceCosts["chromium"], Is.EqualTo(100.0 * speed * 0.044).Within(1));
+        Assert.That(design.ResourceCosts["hydrocarbons"], Is.EqualTo(100.0 * speed * 0.1).Within(1));
         Assert.That(design.ResourceCosts["aluminium"], Is.EqualTo(10L * speed));
         Assert.That(design.ResourceCosts["copper"], Is.EqualTo(30L * speed));
         Assert.That(design.DestructionPercent, Is.EqualTo(0.5f).Within(1e-6f), "HTK stays flat");

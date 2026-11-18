@@ -47,7 +47,7 @@ public class ShipmentTests
     public void MarketSeal_TwoGoods_OneShipmentPerCargoType_AndOneRowEach()
     {
         var scene = Scene.Build();
-        var result = scene.Seal(("iron", 30), ("rp-1", 10), fee: 20m);
+        var result = scene.Seal(("iron", 30), ("hydrocarbons", 10), fee: 20m);
 
         Assert.That(result.Accepted, Is.True, result.RejectionReason);
         var held = ShipmentBook.At(scene.Seller);
@@ -64,7 +64,7 @@ public class ShipmentTests
         Assert.That(scene.Units(scene.Seller, scene.Fuel), Is.EqualTo(90));
         Assert.That(MarketBook.TryGet(scene.Seller, "iron", out var ironListing), Is.True);
         Assert.That(ironListing.SellQuantity, Is.EqualTo(70));
-        Assert.That(MarketBook.TryGet(scene.Seller, "rp-1", out var fuelListing), Is.True);
+        Assert.That(MarketBook.TryGet(scene.Seller, "hydrocarbons", out var fuelListing), Is.True);
         Assert.That(fuelListing.SellQuantity, Is.EqualTo(90));
 
         // One goods line per id, paid now.
@@ -204,7 +204,7 @@ public class ShipmentTests
     public void Cancel_RestoresStockListingsAndLedgers_AndRemovesTheRow()
     {
         var scene = Scene.Build();
-        Assert.That(scene.Seal(("iron", 30), ("rp-1", 10), fee: 20m).Accepted, Is.True);
+        Assert.That(scene.Seal(("iron", 30), ("hydrocarbons", 10), fee: 20m).Accepted, Is.True);
 
         foreach (var shipment in ShipmentBook.At(scene.Seller).ToList())
             Assert.That(ShipmentBook.TryCancel(scene.Buyer, shipment.UniqueID, out var reason), Is.True, reason);
@@ -213,7 +213,7 @@ public class ShipmentTests
         Assert.That(scene.Units(scene.Seller, scene.Iron), Is.EqualTo(100));
         Assert.That(scene.Units(scene.Seller, scene.Fuel), Is.EqualTo(100));
         Assert.That(MarketBook.TryGet(scene.Seller, "iron", out var ironListing) && ironListing.SellQuantity == 100, Is.True);
-        Assert.That(MarketBook.TryGet(scene.Seller, "rp-1", out var fuelListing) && fuelListing.SellQuantity == 100, Is.True);
+        Assert.That(MarketBook.TryGet(scene.Seller, "hydrocarbons", out var fuelListing) && fuelListing.SellQuantity == 100, Is.True);
         Assert.That(scene.BuyerInfo.Money.GetCurrentFunds(), Is.EqualTo(1000m));
         Assert.That(scene.SellerInfo.Money.GetCurrentFunds(), Is.EqualTo(0m));
         Assert.That(scene.Buyer.GetDataBlob<LogiBaseDB>().Intel!.Values.Any(r => r.Kind == IntelKind.Haul), Is.False);
@@ -499,7 +499,7 @@ public class ShipmentTests
             {
                 var info = faction.GetDataBlob<FactionInfoDB>();
                 info.Data.Unlock("iron");
-                info.Data.Unlock("rp-1");
+                info.Data.Unlock("hydrocarbons");
                 info.Data.Unlock("titanium");
                 foreach (var other in factions)
                 {
@@ -534,7 +534,7 @@ public class ShipmentTests
                 BuyerFaction = buyerFaction,
                 Carrier = carrier,
                 Iron = goods.GetAny("iron"),
-                Fuel = goods.GetAny("rp-1"),
+                Fuel = goods.GetAny("hydrocarbons"),
                 Titanium = goods.GetAny("titanium"),
                 SellerInfo = sellerInfo,
                 BuyerInfo = buyerInfo,
@@ -602,7 +602,7 @@ public class ShipmentTests
                 Assert.That(cargo.AddCargoByUnit(Iron, 100), Is.EqualTo(100));
                 Assert.That(cargo.AddCargoByUnit(Fuel, 100), Is.EqualTo(100));
                 Assert.That(MarketBook.SetListing(colony, new MarketListing { CargoId = "iron", SellQuantity = 100, Ask = 10 }), Is.True);
-                Assert.That(MarketBook.SetListing(colony, new MarketListing { CargoId = "rp-1", SellQuantity = 100, Ask = 5 }), Is.True);
+                Assert.That(MarketBook.SetListing(colony, new MarketListing { CargoId = "hydrocarbons", SellQuantity = 100, Ask = 5 }), Is.True);
                 if (stockTitanium > 0)
                 {
                     Assert.That(cargo.AddCargoByUnit(Titanium, stockTitanium), Is.EqualTo(stockTitanium));

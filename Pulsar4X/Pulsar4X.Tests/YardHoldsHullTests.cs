@@ -91,8 +91,8 @@ public class YardHoldsHullTests
         Assert.That(waiting.Select(hull => hull.DesignId), Is.EquivalentTo(new[] { light.UniqueID, heavy.UniqueID }));
         Assert.That(ShipCount(world), Is.EqualTo(0));
         var beforeFuel = YardLine(world, colony).Hulls;
-        // A pad made without a design burns the default launch fuel, RP-1, and the reason names it.
-        Assert.That(beforeFuel.Single(hull => hull.DesignId == light.UniqueID).Reason, Is.EqualTo(LaunchComplexProcessor.NotEnoughOf("RP-1")));
+        // A pad made without a design burns the default launch fuel, Hydrocarbons, and the reason names it.
+        Assert.That(beforeFuel.Single(hull => hull.DesignId == light.UniqueID).Reason, Is.EqualTo(LaunchComplexProcessor.NotEnoughOf("Hydrocarbons")));
         Assert.That(beforeFuel.Single(hull => hull.DesignId == heavy.UniqueID).Reason, Is.EqualTo(LaunchComplexProcessor.OverTonnage));
         var pads = YardView(world, colony).Pads;
         Assert.That(pads.Single().MaxTonnage, Is.EqualTo(light.MassPerUnit));
@@ -177,8 +177,8 @@ public class YardHoldsHullTests
     static void StockFuel(World world, Entity colony)
     {
         // The pad's launch fuel (the default, RP-1): a launch burns only that.
-        world.Info.Data.Unlock("rp-1");
-        var fuel = world.Info.Data.CargoGoods.GetAny("rp-1");
+        world.Info.Data.Unlock("hydrocarbons");
+        var fuel = world.Info.Data.CargoGoods.GetAny("hydrocarbons");
         Assert.That(fuel, Is.Not.Null);
         Assert.That(colony.GetDataBlob<CargoStorageDB>().AddCargoByUnit(fuel!, 2_000_000), Is.EqualTo(2_000_000));
     }
@@ -194,7 +194,7 @@ public class YardHoldsHullTests
 
     static ShipDesign Hull(World world, string name, long partMass)
     {
-        world.Info.Data.Unlock("plastic");
+        world.Info.Data.Unlock("hydrocarbons");
         world.Info.Data.Unlock("plastic-armor");
         var part = new ComponentDesign
         {

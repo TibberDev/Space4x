@@ -666,7 +666,7 @@ namespace Pulsar4X.Tests
             AttachBridge(surveyorA, AdminLevel.Planet);
             SeatCaptain(surveyorA);
 
-            var fuel = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+            var fuel = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
             Assert.IsTrue(FuelSituation.TryFindFleetTanker(surveyorA, fuel, out var tankerId, out var tankerReason),
                 tankerReason);
             Assert.AreEqual(tanker.Id, tankerId, "FuelSituation should pick the fleet mate with the most fuel");
@@ -858,7 +858,7 @@ namespace Pulsar4X.Tests
         {
             var ship = MakeFueledWarpShip(parent, abs, faction, name);
             ship.GetDataBlob<ShipInfoDB>().Tanker = true;
-            var fuel = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+            var fuel = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
             ship.GetDataBlob<CargoStorageDB>().AddCargoByUnit(fuel, 20_000_000);
             return ship;
         }
@@ -901,8 +901,8 @@ namespace Pulsar4X.Tests
             ship.SetDataBlob(thrust);
 
             var data = faction.GetDataBlob<FactionInfoDB>().Data;
-            data.Unlock("methalox");
-            var fuel = data.CargoGoods.GetAny("methalox");
+            data.Unlock("hydrocarbons");
+            var fuel = data.CargoGoods.GetAny("hydrocarbons");
             thrust.FuelType = fuel.UniqueID;
             var storage = new CargoStorageDB(fuel.CargoTypeID, 1e12);
             storage.AddCargoByUnit(fuel, 1_000_000);

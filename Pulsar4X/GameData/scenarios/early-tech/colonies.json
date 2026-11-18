@@ -78,10 +78,6 @@
           "Amount": 1
         },
         {
-          "Id": "default-design-refinery-site",
-          "Amount": 1
-        },
-        {
           "Id": "default-design-factory-site",
           "Amount": 1
         },
@@ -121,22 +117,18 @@
       "Cargo": [
         {
           "Id": "iron",
-          "Amount": 500000
+          "Amount": 589000
         },
         {
           "Id": "hydrocarbons",
-          "Amount": 341348702
-        },
-        {
-          "Id": "stainless-steel",
-          "Amount": 100000
+          "Amount": 400348702
         },
         {
           "Id": "chromium",
-          "Amount": 50000
+          "Amount": 61000
         },
         {
-          "Id": "fissionables",
+          "Id": "uranium",
           "Amount": 50000
         },
         {
@@ -182,17 +174,7 @@
           "Type": "byCount"
         },
         {
-          "Id": "rp-1",
-          "Amount": 50000000,
-          "Type": "byCount"
-        },
-        {
-          "Id": "hydrolox",
-          "Amount": 9000000,
-          "Type": "byCount"
-        },
-        {
-          "Id": "methalox",
+          "Id": "hydrogen",
           "Amount": 9000000,
           "Type": "byCount"
         }
@@ -213,32 +195,26 @@
         "passive-sensor",
         "battery-bank",
         "conventional-engine",
-        "refining",
         "component-construction",
         "installation-construction",
         "ship-assembly",
         "mine",
         "research-lab",
-        "refinery",
         "factory",
         "shipyard",
         "general-cargo-hold",
         "fuel-cargo-hold",
         "stainless-steel-fuel-tank",
         "infrastructure",
-        "stainless-steel",
-        "rp-1",
-        "hydrolox",
-        "methalox",
-        "plastic",
         "hydrocarbons",
+        "hydrogen",
         "iron",
         "aluminium",
         "copper",
         "titanium",
         "lithium",
         "chromium",
-        "fissionables",
+        "uranium",
         "silicon",
         "graphite",
         "tungsten",
@@ -246,7 +222,6 @@
         "water",
         "rare-earth-elements",
         "regolith",
-        "space-crete",
         "admin-complex",
         "ship-command",
         "naval-academy",
@@ -264,7 +239,6 @@
         "launch-complex",
         "logistics-office",
         "factory-site",
-        "refinery-site",
         "local-construction-site",
         "logistics-office-site",
         "warehouse-site",
@@ -288,7 +262,6 @@
         "default-design-passive-sensor",
         "default-design-passive-sensor-s50",
         "default-design-raptor",
-        "default-design-refinery",
         "default-design-rs-25",
         "default-design-shipyard",
         "default-design-shuttlebay",
@@ -311,7 +284,6 @@
         "default-design-bridge-system",
         "default-design-logistics-office",
         "default-design-factory-site",
-        "default-design-refinery-site",
         "default-design-local-construction-site",
         "default-design-logistics-office-site",
         "default-design-infrastructure-site",
@@ -331,7 +303,7 @@
               "Name": "Starship I",
               "Cargo": [
                 {
-                  "Id": "methalox",
+                  "Id": "hydrocarbons",
                   "Amount": 20000000,
                   "Type": "byVolume"
                 }

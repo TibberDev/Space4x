@@ -70,7 +70,7 @@ public class NewtonianTransferTests
         _earth = _starship.GetSOIParentEntity();
         _now = _starship.StarSysDateTime;
         _design = _faction.GetDataBlob<FactionInfoDB>().ShipDesigns["early-ship-design-starship"];
-        _methalox = _faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+        _methalox = _faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
         _fuelKg = _starship.GetDataBlob<CargoStorageDB>().GetMassStored(_methalox, false);
         Assert.That(_fuelKg, Is.GreaterThan(0));
         Assert.That(_earth, Is.Not.Null);

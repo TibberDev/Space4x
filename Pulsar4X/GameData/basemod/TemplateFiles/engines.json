@@ -15,7 +15,8 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Mass') / 250, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.15",
+        "iron": "[Mass] * 0.1335",
+        "chromium": "[Mass] * 0.0165",
         "titanium": "[Mass] * .25",
         "aluminium": "[Mass] * .3",
         "tungsten": "[Mass] * .05",
@@ -57,7 +58,7 @@
           "DataDict": {
             "fuel-storage": "'conventional'"
           },
-          "PropertyFormula": "UniqueID('rp-1')"
+          "PropertyFormula": "UniqueID('hydrocarbons')"
         },
         {
           "Name": "Fuel Consumption",
@@ -73,7 +74,6 @@
           "PropertyFormula": "AtbConstrArgs(PropertyValue('Exhaust Velocity'), PropertyValue('Fuel Type'), PropertyValue('Fuel Consumption'))",
           "AttributeType": "Pulsar4X.Movement.NewtonionThrustAtb"
         },
-
         {
           "Name": "Sensor Signature",
           "Units": "unknown",
@@ -101,11 +101,12 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Mass') / 2000, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.15",
+        "iron": "[Mass] * 0.1335",
+        "chromium": "[Mass] * 0.0165",
         "titanium": "[Mass] * .25",
         "graphite": "[Mass] * .3",
         "tungsten": "[Mass] * .25",
-        "plastic": "[Mass] * .05"
+        "hydrocarbons": "[Mass] * 0.025"
       },
       "ComponentType": "Engine",
       "MountType": "ShipComponent, ShipCargo, Fighter",
@@ -129,14 +130,14 @@
           "DataDict": {
             "fuel-storage": "'ntr'"
           },
-          "PropertyFormula": "UniqueID('ntp')"
+          "PropertyFormula": "UniqueID('hydrogen')"
         },
         {
           "Name": "Exhaust Velocity",
           "Units": "m/s",
           "DescriptionFormula": "'Specific Impulse in m/s, can be increased by research'",
           "GuiHint": "GuiTextDisplay",
-          "PropertyFormula": "ExhaustVelocityLookup(PropertyValue('Fuel Type')) + TechData('tech-nuclear-solid-engine') * 250"
+          "PropertyFormula": "7000 + TechData('tech-nuclear-solid-engine') * 250"
         },
         {
           "Name": "Thrust",
@@ -188,7 +189,8 @@
       "ResourceCost": {
         "copper": "[Mass] * 0.25",
         "aluminium": "[Mass] * 0.25",
-        "stainless-steel": "[Mass] * 0.5"
+        "iron": "[Mass] * 0.445",
+        "chromium": "[Mass] * 0.055"
       },
       "ComponentType": "Engine",
       "MountType": "ShipComponent, ShipCargo, Fighter",

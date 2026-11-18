@@ -28,8 +28,8 @@ namespace Pulsar4X.Tests
             var ship = Entity.Create(session.FactionId);
             var data = _game.Factions[session.FactionId].GetDataBlob<FactionInfoDB>().Data;
             var energyGood = data.CargoGoods.GetAll().Values.Concat(data.LockedCargoGoods.GetAll().Values).First();
-            data.Unlock("methalox");
-            var fuel = data.CargoGoods.GetAny("methalox");
+            data.Unlock("hydrocarbons");
+            var fuel = data.CargoGoods.GetAny("hydrocarbons");
             Assert.That(fuel, Is.Not.Null, "test universe has methalox after Unlock");
 
             var thrustAbility = new Pulsar4X.Movement.NewtonThrustAbilityDB(fuel.UniqueID)

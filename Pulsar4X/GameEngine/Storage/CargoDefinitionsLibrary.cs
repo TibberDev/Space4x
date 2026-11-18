@@ -166,5 +166,16 @@ namespace Pulsar4X.Storage
         public SafeDictionary<int, ProcessedMaterial> GetMaterials() => _processedMaterials;
 
         public SafeList<ProcessedMaterial> GetMaterialsList() => new SafeList<ProcessedMaterial>(_processedMaterials.Values.ToList());
+
+        /// <summary>
+        /// The fuel formulas (ExhaustVelocity, ChemicalEnergy, FuelType) of a cargo item, or null.
+        /// Fuels are mined minerals in basemod; a mod may still define a processed fuel.
+        /// </summary>
+        public static Dictionary<string, string>? FormulasOf(ICargoable? cargo) => cargo switch
+        {
+            Mineral mineral => mineral.Formulas,
+            ProcessedMaterial material => material.Formulas,
+            _ => null
+        };
     }
 }

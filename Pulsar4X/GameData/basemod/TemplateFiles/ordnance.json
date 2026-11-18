@@ -15,7 +15,8 @@
         "BuildPointCost": "[Mass]"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 8"
+        "iron": "[Mass] * 7.12",
+        "chromium": "[Mass] * 0.88"
       },
       "ComponentType": "Weapon",
       "MountType": "Missile",
@@ -32,7 +33,7 @@
         {
           "Name": "Trigger Type",
           "GuiHint": "GuiEnumSelectionList",
-          "EnumTypeName" : "Pulsar4X.DataStructures.TriggerTypes",
+          "EnumTypeName": "Pulsar4X.DataStructures.TriggerTypes",
           "MaxFormula": "TechLevel('tech-triggers') + 3",
           "MinFormula": "0",
           "StepFormula": "1",
@@ -42,7 +43,7 @@
           "Name": "Payload Type",
           "DescriptionFormula": "''",
           "GuiHint": "GuiEnumSelectionList",
-          "EnumTypeName" : "Pulsar4X.DataStructures.PayloadTypes",
+          "EnumTypeName": "Pulsar4X.DataStructures.PayloadTypes",
           "MaxFormula": "3",
           "MinFormula": "0",
           "StepFormula": "1",
@@ -52,7 +53,7 @@
           "Name": "Explosive Mass",
           "Units": "kg",
           "DescriptionFormula": "'Mass of explosive'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 0 || PropertyValue('Payload Type') = 1, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 0 || PropertyValue('Payload Type') = 1, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "500",
           "MinFormula": "1",
@@ -63,7 +64,7 @@
           "Name": "TNT Equivalent",
           "Units": "kg",
           "DescriptionFormula": "'TNT eq of explosive mass'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 0 || PropertyValue('Payload Type') = 1, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 0 || PropertyValue('Payload Type') = 1, true, false)",
           "GuiHint": "GuiTextDisplay",
           "PropertyFormula": "PropertyValue('Explosive Mass') * TechData('tech-high-explosives')"
         },
@@ -71,7 +72,7 @@
           "Name": "Frag Mass",
           "Units": "kg",
           "DescriptionFormula": "'Mass of individual fragments'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 0, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 0, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "500",
           "MinFormula": "0",
@@ -81,7 +82,7 @@
         {
           "Name": "Frag Count",
           "DescriptionFormula": "'Number of individual fragments'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 0, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 0, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "500",
           "MinFormula": "0",
@@ -92,7 +93,7 @@
           "Name": "Frag Cone Angle",
           "Units": "kg",
           "DescriptionFormula": "'Cone angle, larger is more efficent per fragment'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 0, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 0, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "360",
           "MinFormula": "45",
@@ -109,7 +110,7 @@
         {
           "Name": "ExplDataBlob",
           "DescriptionFormula": "''",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 0, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 0, true, false)",
           "GuiHint": "None",
           "PropertyFormula": "AtbConstrArgs(PropertyValue('Trigger Type'), PropertyValue('Mass0'), PropertyValue('TNT Equivalent'), PropertyValue('Frag Mass'), PropertyValue('Frag Count'), PropertyValue('Frag Cone Angle'))",
           "AttributeType": "Pulsar4X.Atb.OrdnanceExplosivePayload"
@@ -118,7 +119,7 @@
           "Name": "Liner Radius",
           "Units": "mm",
           "DescriptionFormula": "'Affects the shape and velocity of the slug'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 1, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 1, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "500",
           "MinFormula": "0.01",
@@ -129,7 +130,7 @@
           "Name": "Liner Cone Height",
           "Units": "mm",
           "DescriptionFormula": "'Affects the shape and velocity of the slug'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 1, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 1, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "180",
           "MinFormula": "25",
@@ -140,7 +141,7 @@
           "Name": "Liner Thickness",
           "Units": "mm",
           "DescriptionFormula": "'Affects the shape and velocity of the slug'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 1, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 1, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "10",
           "MinFormula": "1",
@@ -171,7 +172,7 @@
         {
           "Name": "ShapeDataBlob",
           "DescriptionFormula": "''",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 1, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 1, true, false)",
           "GuiHint": "None",
           "PropertyFormula": "AtbConstrArgs(PropertyValue('Trigger Type'), PropertyValue('Mass1'), PropertyValue('TNT Equivalent'), PropertyValue('Liner Radius'), PropertyValue('Liner Cone Height'))",
           "AttributeType": "Pulsar4X.Atb.OrdnanceShapedPayload"
@@ -180,14 +181,14 @@
           "Name": "Submunition Type",
           "Units": "Degrees",
           "DescriptionFormula": "'Pre-Designed missile to use as a submunition'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 2, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 2, true, false)",
           "GuiHint": "GuiOrdnanceSelectionList",
           "PropertyFormula": "0"
         },
         {
           "Name": "Submunition Count",
           "DescriptionFormula": "'Number of submunitions in this payload'",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 2, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 2, true, false)",
           "GuiHint": "GuiSelectionMaxMin",
           "MaxFormula": "180",
           "MinFormula": "25",
@@ -210,7 +211,7 @@
         },
         {
           "Name": "SubmDataBlob",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Payload Type') = 2, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Payload Type') = 2, true, false)",
           "GuiHint": "None",
           "PropertyFormula": "AtbConstrArgs(PropertyValue('Trigger Type'), PropertyValue('Mass2'), PropertyValue('Submunition Type'), PropertyValue('Submunition Count'))",
           "AttributeType": "Pulsar4X.Atb.OrdnanceSubmunitionsPayload"
@@ -234,7 +235,8 @@
         "BuildPointCost": "[Mass]"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 8"
+        "iron": "[Mass] * 7.12",
+        "chromium": "[Mass] * 0.88"
       },
       "ComponentType": "Engine",
       "MountType": "Missile",
@@ -276,7 +278,7 @@
           "Name": "DataBlob",
           "DescriptionFormula": "''",
           "GuiHint": "None",
-          "PropertyFormula": "AtbConstrArgs(PropertyValue('Exhaust Velocity'), 'rp-1', PropertyValue('Fuel Consumption'))",
+          "PropertyFormula": "AtbConstrArgs(PropertyValue('Exhaust Velocity'), 'hydrocarbons', PropertyValue('Fuel Consumption'))",
           "AttributeType": "Pulsar4X.Movement.NewtonionThrustAtb"
         },
         {
@@ -316,7 +318,7 @@
           "Name": "Guidance Type",
           "DescriptionFormula": "''",
           "GuiHint": "GuiEnumSelectionList",
-          "EnumTypeName" : "Pulsar4X.DataStructures.GuidanceTypes",
+          "EnumTypeName": "Pulsar4X.DataStructures.GuidanceTypes",
           "MaxFormula": "TechLevel('tech-guidance') + 3",
           "MinFormula": "0",
           "StepFormula": "1",
@@ -324,7 +326,7 @@
         },
         {
           "Name": "Antenna Size",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "m^2",
           "DescriptionFormula": "'Gives an effective area of:  '",
           "GuiHint": "GuiSelectionMaxMin",
@@ -335,15 +337,14 @@
         },
         {
           "Name": "Effective Size",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "m^2",
           "GuiHint": "None",
           "PropertyFormula": "PropertyValue('Antenna Size') * TechData('tech-antenna-efficiency')"
         },
-
         {
           "Name": "Ideal Detection Wavelength",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "nm",
           "DescriptionFormula": "'The wavelength this sensor is most efficient at detecting'",
           "GuiHint": "GuiSelectionMaxMin",
@@ -354,7 +355,7 @@
         },
         {
           "Name": "Detection Bandwidth",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "nm",
           "DescriptionFormula": "'How far from the ideal wavelength will this still detect a signal'",
           "GuiHint": "GuiSelectionMaxMin",
@@ -365,13 +366,13 @@
         },
         {
           "Name": "Efficiency",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "GuiHint": "GuiTextDisplay",
           "PropertyFormula": "1 / (PropertyValue('Detection Bandwidth') / TechData('tech-antenna-bandwidth') )"
         },
         {
           "Name": "Sensitivity at Ideal Wavelength",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "W",
           "DescriptionFormula": "'Smallest signal this can detect at the ideal wavelength, lower is better.",
           "GuiHint": "GuiTextDisplay",
@@ -379,7 +380,7 @@
         },
         {
           "Name": "Sensitivity at Worst Wavelength",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "W",
           "DescriptionFormula": "'Smallest signal this can detect at the worst wavelength, lower is better.'",
           "GuiHint": "GuiTextDisplay",
@@ -387,7 +388,7 @@
         },
         {
           "Name": "Resolution",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "MegaPixel",
           "DescriptionFormula": "'How much detail it can get from a detection. affects likelyhood of component detection etc. '",
           "GuiHint": "GuiSelectionMaxMin",
@@ -398,7 +399,7 @@
         },
         {
           "Name": "Scan Time",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "Units": "s",
           "DescriptionFormula": "'how long it takes to complete a full scan'",
           "GuiHint": "GuiSelectionMaxMin",
@@ -423,7 +424,7 @@
         },
         {
           "Name": "SensorDatablobArguments",
-          "GuiIsEnabledFormula" : "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
+          "GuiIsEnabledFormula": "if(PropertyValue('Guidance Type') = 2 || PropertyValue('Guidance Type') = 3, true, false)",
           "DescriptionFormula": "'(double peakWaveLength, double bandwidth, double bestSensitivity, double worstSensitivity, double resolution, double scanTime)'",
           "GuiHint": "None",
           "PropertyFormula": "AtbConstrArgs(PropertyValue('Ideal Detection Wavelength'), PropertyValue('Detection Bandwidth'), PropertyValue('Sensitivity at Ideal Wavelength'), PropertyValue('Sensitivity at Worst Wavelength'), PropertyValue('Resolution'), PropertyValue('Scan Time'))",

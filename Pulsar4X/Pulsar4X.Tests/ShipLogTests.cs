@@ -421,8 +421,8 @@ public class ShipLogTests
         ship.SetDataBlob(thrust);
 
         var data = faction.GetDataBlob<FactionInfoDB>().Data;
-        data.Unlock("methalox");
-        var fuel = data.CargoGoods.GetAny("methalox");
+        data.Unlock("hydrocarbons");
+        var fuel = data.CargoGoods.GetAny("hydrocarbons");
         thrust.FuelType = fuel.UniqueID;
         var storage = new CargoStorageDB(fuel.CargoTypeID, 1e12);
         storage.AddCargoByUnit(fuel, 1_000_000);

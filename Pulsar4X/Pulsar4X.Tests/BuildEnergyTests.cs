@@ -47,6 +47,7 @@ public class BuildEnergyTests
         _store = new ModDataStore();
         new ModLoader().LoadModManifest("Data/basemod/modInfo.json", _store);
         new ModLoader().LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", _store);
+        TestMaterials.AddSteel(_store);
 
         _game = new Game(new NewGameSettings { MaxSystems = 1, CreatePlayerFaction = false }, _store);
         _game.Settings.EnforceSingleThread = true;
@@ -144,7 +145,7 @@ public class BuildEnergyTests
             var d = Info.ComponentDesigns[id];
             TestContext.Out.WriteLine($"{d.Name} ({id}): {d.IndustryPointCosts:N0} IP, {Stringify.EnergyKwh(d.EnergyCost)}");
         }
-        foreach (var id in new[] { "stainless-steel", "methalox", "hydrolox", "electronics", "fissile-fuels" })
+        foreach (var id in new[] { "stainless-steel", "plastic", "hydrolox" })
         {
             var m = _store.ProcessedMaterials[id];
             TestContext.Out.WriteLine($"{m.Name}: {m.BatchEnergy} kWh per {m.OutputAmount} units, {m.BatchEnergy / m.IndustryPointCosts:0.##} kWh/IP");
@@ -175,8 +176,7 @@ public class BuildEnergyTests
         Assert.That(((IConstructableDesign)steel).EnergyCost, Is.EqualTo(70), "0.7 kWh/kg x 100 kg");
         var expected = new Dictionary<string, double>
         {
-            ["stainless-steel"] = 70, ["plastic"] = 12, ["electronics"] = 1000, ["methalox"] = 4250, ["rp-1"] = 2975,
-            ["hydrolox"] = 19550, ["ntp"] = 1200, ["fissile-fuels"] = 400, ["space-crete"] = 50,
+            ["stainless-steel"] = 70, ["plastic"] = 12, ["hydrolox"] = 19550,
         };
         foreach (var (id, kWh) in expected)
             Assert.That(_store.ProcessedMaterials[id].BatchEnergy, Is.EqualTo(kWh), id);
@@ -412,10 +412,11 @@ public class BuildEnergyTests
         var piles = early.Cargo!.Where(c => c.Id == "hydrocarbons").ToList();
         Assert.That(piles, Has.Count.EqualTo(1));
         // 75 MW thermal, 730 days: ceil(75,000 kW x 86,400 s / (0.33 x 42 MJ/kg x 1000) x 730) = 341,298,702 kg,
-        // plus the 50,000 kg working stock the colony always had.
+        // plus the 50,000 kg working stock the colony always had, plus (mined-only resources) the
+        // 59,000,000 kg of RP-1 and methalox it started with, now Hydrocarbons.
         double reserve = Math.Ceiling(75_000.0 * 86_400 / (0.33 * 42 * 1000) * ColonyPowerProcessor.FuelReserveDays);
         Assert.That(reserve, Is.EqualTo(341_298_702));
-        Assert.That(piles[0].Amount, Is.EqualTo(reserve + 50_000));
+        Assert.That(piles[0].Amount, Is.EqualTo(reserve + 50_000 + 59_000_000));
     }
 
     // ---- helpers ----

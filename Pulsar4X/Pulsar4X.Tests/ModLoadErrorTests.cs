@@ -169,7 +169,7 @@ public class ModLoadErrorTests
             entries.Add("""
                 {
                   "Type": "Armor",
-                  "Payload": { "UniqueID": "fixture-plastic-armor", "ResourceID": "plastic", "Density": "1175" }
+                  "Payload": { "UniqueID": "fixture-plastic-armor", "ResourceID": "hydrocarbons", "Density": "1175" }
                 }
                 """);
             entries.Add(ComponentDesign(DesignA));
@@ -198,7 +198,7 @@ public class ModLoadErrorTests
                 "Name": "Missing Designs Colony",
                 "Body": "Earth",
                 "StartingPopulation": 1000,
-                "StartingItems": [ "cargo-Shuttlebay", "stainless-steel", "aluminium", "titanium", "plastic", "fixture-plastic-armor" ],
+                "StartingItems": [ "cargo-Shuttlebay", "iron", "chromium", "hydrocarbons", "aluminium", "titanium", "copper", "fixture-plastic-armor" ],
                 "ComponentDesigns": [ "{{DesignA}}", "{{DesignB}}" ],
                 "ShipDesigns": [ "{{ShipDesign}}" ]
               }

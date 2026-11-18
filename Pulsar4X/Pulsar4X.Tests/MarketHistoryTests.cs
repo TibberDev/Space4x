@@ -549,7 +549,7 @@ public class MarketHistoryTests
         // Anchors follow the energy-priced seeds: iron mid of bid and ask, methalox and water ask only.
         decimal ironMid = Math.Round((EnergyPriceOracle.IronBid(game) + EnergyPriceOracle.IronAsk(game)) / 2, 2, MidpointRounding.AwayFromZero);
         AssertPriorSeed(depotBook, "iron", depotStart, ironMid);
-        AssertPriorSeed(depotBook, "methalox", depotStart, EnergyPriceOracle.FuelAsk(game));
+        AssertPriorSeed(depotBook, "hydrocarbons", depotStart, EnergyPriceOracle.FuelAsk(game));
         AssertPriorSeed(depotBook, "water", depotStart, EnergyPriceOracle.WaterAsk(game));
 
         bool foundZeroOnEarthOrLuna = false;

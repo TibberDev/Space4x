@@ -32,6 +32,7 @@ public class ColonyIndustryTests
         var store = new ModDataStore();
         modLoader.LoadModManifest("Data/basemod/modInfo.json", store);
         modLoader.LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", store);
+        TestMaterials.AddSteel(store);
         var game = new Game(new NewGameSettings { MaxSystems = 4, CreatePlayerFaction = false }, store);
         game.Settings.EnforceSingleThread = true;
         return game;
@@ -336,11 +337,14 @@ public class ColonyIndustryTests
             MassVolumeDB.NewFromMassAndRadius_m(1e24, 6e6),
         });
 
+        // Hydrocarbons is a fuel (mined-only resources), so the colony needs a fuel store too.
+        var storage = new CargoStorageDB("general-storage", 100000);
+        storage.TypeStores.Add("fuel-storage", new TypeStore(100000));
         var blobs = new List<BaseDataBlob>
         {
             new NameDB("Colony"),
             new ColonyInfoDB { PlanetEntity = planet },
-            new CargoStorageDB("general-storage", 100000),
+            storage,
             new LogiBaseDB { Capacity = capacity },
             new ActionQueueDB(),
         };

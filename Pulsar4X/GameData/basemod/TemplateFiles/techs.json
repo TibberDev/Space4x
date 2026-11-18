@@ -573,7 +573,7 @@
       "Category": "tech-category-construction-production",
       "MaxLevel": 10,
       "DataFormula": "(1 + [Level]) * 1000",
-      "CostFormula":"(1 + [Level]) * 2500"
+      "CostFormula": "(1 + [Level]) * 2500"
     }
   },
   {
@@ -585,7 +585,7 @@
       "Category": "tech-category-construction-production",
       "MaxLevel": 100,
       "DataFormula": "(1 + [Level]) * 5000",
-      "CostFormula":"(1 + [Level]) * 500"
+      "CostFormula": "(1 + [Level]) * 500"
     }
   },
   {
@@ -633,7 +633,7 @@
       "Category": "tech-category-designs",
       "MaxLevel": 1,
       "DataFormula": "(1 + [Level]) * 5000",
-      "CostFormula":"(1 + [Level]) * 500",
+      "CostFormula": "(1 + [Level]) * 500",
       "Unlocks": {
         "1": [
           "geo-surveyor"
@@ -650,7 +650,7 @@
       "Category": "tech-category-designs",
       "MaxLevel": 1,
       "DataFormula": "(1 + [Level]) * 5000",
-      "CostFormula":"(1 + [Level]) * 500",
+      "CostFormula": "(1 + [Level]) * 500",
       "Unlocks": {
         "1": [
           "asteroid-miner"
@@ -667,7 +667,7 @@
       "Category": "tech-category-designs",
       "MaxLevel": 1,
       "DataFormula": "(1 + [Level]) * 5000",
-      "CostFormula":"(1 + [Level]) * 500",
+      "CostFormula": "(1 + [Level]) * 500",
       "Unlocks": {
         "1": [
           "gravitational-surveyor"
@@ -767,9 +767,7 @@
         "1": [
           "steam-turbine-reactor",
           "rtg",
-          "fissile-fuels",
           "scntr-engine",
-          "ntp",
           "tech-early-directed-energy",
           "tech-early-warp-drive",
           "tech-fission-power-plant",
@@ -830,7 +828,7 @@
     "Payload": {
       "UniqueID": "tech-thermal-efficiency",
       "Name": "Thermal Plant Efficiency",
-      "Description": "Better boilers, turbines and heat recovery. The share of fuel heat a thermal plant, methalox turbine or fission plant turns into electricity: 33% at level 0, +3 points a level. Simple-cycle plants stop at 45% (fission plants always do); Combined Cycle lifts the cap to 60%. New plant designs pick up the level; built plants keep the efficiency they were designed with.",
+      "Description": "Better boilers, turbines and heat recovery. The share of fuel heat a thermal plant, oxidiser turbine or fission plant turns into electricity: 33% at level 0, +3 points a level. Simple-cycle plants stop at 45% (fission plants always do); Combined Cycle lifts the cap to 60%. New plant designs pick up the level; built plants keep the efficiency they were designed with.",
       "Category": "tech-category-power-propulsion",
       "MaxLevel": 9,
       "DataFormula": "0.33 + [Level] * 0.03",
@@ -847,7 +845,7 @@
     "Payload": {
       "UniqueID": "tech-combined-cycle",
       "Name": "Combined Cycle",
-      "Description": "A steam cycle on the gas turbine's exhaust. Raises the thermal plant efficiency cap from 45% to 60% (methalox turbines to 55%). Opened by Thermal Plant Efficiency level 4, where simple-cycle plants reach the 45% cap.",
+      "Description": "A steam cycle on the gas turbine's exhaust. Raises the thermal plant efficiency cap from 45% to 60% (oxidiser turbines to 55%). Opened by Thermal Plant Efficiency level 4, where simple-cycle plants reach the 45% cap.",
       "Category": "tech-category-power-propulsion",
       "MaxLevel": 1,
       "DataFormula": "1",
@@ -912,7 +910,7 @@
     "Payload": {
       "UniqueID": "tech-industrial-energy-efficiency",
       "Name": "Industrial Energy Efficiency",
-      "Description": "Efficient motors, furnaces and heat recovery. Multiplies the build energy every industry point spends (refining, fabrication and assembly): x1 at level 0, -5% a level, to x0.6. Applies to running jobs at once; a design's listed build energy stays the level 0 figure.",
+      "Description": "Efficient motors, furnaces and heat recovery. Multiplies the build energy every industry point spends (fabrication and assembly): x1 at level 0, -5% a level, to x0.6. Applies to running jobs at once; a design's listed build energy stays the level 0 figure.",
       "Category": "tech-category-construction-production",
       "MaxLevel": 8,
       "DataFormula": "1 - [Level] * 0.05",

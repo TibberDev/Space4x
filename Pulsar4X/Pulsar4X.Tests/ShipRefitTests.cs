@@ -186,7 +186,7 @@ public class ShipRefitTests
         var sensor = FlaggedPart(world, "Passive Sensor S50", sensorFlags);
         var tank = FlaggedPart(world, "Fuel Tank 1500m^3", tankFlags);
         var bay = FlaggedPart(world, "Construction Bay", bayFlags);
-        world.Info.Data.Unlock("plastic");
+        world.Info.Data.Unlock("hydrocarbons");
         world.Info.Data.Unlock("plastic-armor");
         var armor = (world.Info.Data.Armor["plastic-armor"], 0f);
         var freighter = new ShipDesign(
@@ -361,7 +361,7 @@ public class ShipRefitTests
 
     static (ShipDesign Freighter, ShipDesign ColonyShip, ComponentDesign Bay) FreighterAndColonyShip(World world)
     {
-        world.Info.Data.Unlock("plastic");
+        world.Info.Data.Unlock("hydrocarbons");
         world.Info.Data.Unlock("plastic-armor");
         var armor = (world.Info.Data.Armor["plastic-armor"], 0f);
         var kept = Part(world, "Kept", 1000);
@@ -409,7 +409,7 @@ public class ShipRefitTests
 
     static ShipDesign Hull(World world, string name, long partMass)
     {
-        world.Info.Data.Unlock("plastic");
+        world.Info.Data.Unlock("hydrocarbons");
         world.Info.Data.Unlock("plastic-armor");
         var part = Part(world, "Part", partMass);
         var design = new ShipDesign(

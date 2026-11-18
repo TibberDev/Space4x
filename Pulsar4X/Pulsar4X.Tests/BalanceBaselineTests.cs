@@ -21,22 +21,25 @@ namespace Pulsar4X.Tests;
 public class BalanceBaselineTests
 {
     [Test]
-    public void ChemicalFuel_IsOneRefineryDay_AndSteelStaysASmallBatch()
+    public void Fuels_AreMinedMinerals_WithTheirExhaustVelocities()
     {
         var store = Load();
 
-        foreach (var id in new[] { "rp-1", "methalox", "hydrolox" })
-        {
-            var fuel = store.ProcessedMaterials[id];
-            Assert.That(fuel.IndustryPointCosts, Is.EqualTo(500), id);
-            Assert.That(fuel.OutputAmount, Is.EqualTo(8500), id);
-            Assert.That(fuel.ResourceCosts["hydrocarbons"], Is.EqualTo(4250), id);
-        }
+        // Mined-only resources (2026-11-18): no refining, no processed goods but electricity.
+        Assert.That(store.ProcessedMaterials.Keys, Is.EquivalentTo(new[] { "electricity" }));
+        Assert.That(store.IndustryTypes.ContainsKey("refining"), Is.False);
 
-        var steel = store.ProcessedMaterials["stainless-steel"];
-        Assert.That(steel.IndustryPointCosts, Is.EqualTo(20));
-        Assert.That(steel.OutputAmount, Is.EqualTo(100));
-        Assert.That(store.ProcessedMaterials["rp-1"].Formulas["ExhaustVelocity"], Is.EqualTo("3510"));
+        // Hydrocarbons takes methalox's numbers, so Starship I keeps its delta-v; Hydrogen takes hydrolox's.
+        var hydrocarbons = store.Minerals["hydrocarbons"];
+        Assert.That(hydrocarbons.CargoTypeID, Is.EqualTo("fuel-storage"));
+        Assert.That(hydrocarbons.Formulas["ExhaustVelocity"], Is.EqualTo("3615"));
+        Assert.That(hydrocarbons.Formulas["FuelType"], Is.EqualTo("conventional"));
+        var hydrogen = store.Minerals["hydrogen"];
+        Assert.That(hydrogen.CargoTypeID, Is.EqualTo("fuel-storage"));
+        Assert.That(hydrogen.Formulas["ExhaustVelocity"], Is.EqualTo("4462"));
+        Assert.That(hydrogen.Formulas["FuelType"].Split(' '), Is.EquivalentTo(new[] { "conventional", "ntr" }));
+        Assert.That(store.Minerals["uranium"].CargoTypeID, Is.EqualTo("fuel-storage"));
+        Assert.That(store.Minerals.ContainsKey("fissionables"), Is.False);
     }
 
     [Test]
@@ -63,7 +66,7 @@ public class BalanceBaselineTests
             Assert.That(factory.MassPerUnit, Is.EqualTo(80));
             Assert.That(factory.IndustryPointCosts, Is.EqualTo(1800));
             Assert.That(factory.CrewReq, Is.EqualTo(1));
-            Assert.That(factory.ResourceCosts["iron"], Is.EqualTo(12));
+            Assert.That(factory.ResourceCosts["iron"], Is.EqualTo(22), "15% iron plus the 15% steel's iron");
 
             var yard = Design(faction, data, "shipyard");
             // 8 x the 85 t default slip (the starting yard's slip, 2026-11-15; 38 t before).
@@ -77,8 +80,8 @@ public class BalanceBaselineTests
             Assert.That(LocalConstructionJob.MountCost(academy.MassPerUnit), Is.EqualTo(1));
 
             var reactor = Design(faction, data, "reactor");
-            Assert.That(reactor.ResourceCosts.ContainsKey("fissile-fuels"), Is.False);
-            Assert.That(reactor.ResourceCosts["stainless-steel"], Is.EqualTo(750));
+            Assert.That(reactor.ResourceCosts.ContainsKey("uranium"), Is.False);
+            Assert.That(reactor.ResourceCosts["iron"], Is.EqualTo(667).Within(1), "the 750 kg of steel, 89% iron");
         }
         finally
         {

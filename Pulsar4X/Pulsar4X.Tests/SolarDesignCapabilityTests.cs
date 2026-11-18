@@ -30,7 +30,7 @@ public class SolarDesignCapabilityTests
         Assert.That(reasons.Count, Is.EqualTo(expectedArea > 0 ? 0 : 1));
         // Adding a conventional generator doesn't add its watts to the solar-area metric.
         component.AttributesByType[typeof(EnergyGenerationAtb)] =
-            new EnergyGenerationAtb("fissile-fuels", 1, "electricity", 15000, 1000);
+            new EnergyGenerationAtb("uranium", 1, "electricity", 15000, 1000);
         Assert.That(ShipDesign.GetSolarCollectionArea(new[] { (component, count) }), Is.EqualTo(expectedArea));
     }
 

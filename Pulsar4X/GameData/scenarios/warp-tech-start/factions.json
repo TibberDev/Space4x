@@ -37,7 +37,7 @@
               "DesignId": "default-ship-design-geo-surveyor",
               "Name": "Pathfinder",
               "Cargo": [
-                { "Id": "methalox", "Amount": 2000, "Type": "byVolume" }
+                { "Id": "hydrocarbons", "Amount": 2000, "Type": "byVolume" }
               ]
             }
           ]
@@ -84,7 +84,7 @@
               "DesignId": "ship-design-lode-prospector",
               "Name": "Prospector",
               "Cargo": [
-                { "Id": "methalox", "Amount": 2000, "Type": "byVolume" }
+                { "Id": "hydrocarbons", "Amount": 2000, "Type": "byVolume" }
               ]
             }
           ]

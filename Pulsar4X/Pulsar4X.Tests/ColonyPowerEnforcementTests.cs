@@ -52,6 +52,7 @@ public class ColonyPowerEnforcementTests
         _store = new ModDataStore();
         new ModLoader().LoadModManifest("Data/basemod/modInfo.json", _store);
         new ModLoader().LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", _store);
+        TestMaterials.AddSteel(_store);
 
         _game = new Game(new NewGameSettings { MaxSystems = 1, CreatePlayerFaction = false }, _store);
         _game.Settings.EnforceSingleThread = true;
@@ -210,11 +211,11 @@ public class ColonyPowerEnforcementTests
     public void Fission_BurnsGramsADay_AndTheMarketHoldsTheRunway()
     {
         // Earth's stock start: one 75 MW fission plant and 730 days of fuel at full load.
-        Assert.That(ColonyPowerProcessor.FuelReserveUnits(_earth, "fissile-fuels"), Is.EqualTo(359));
-        double before = Stock("fissile-fuels");
+        Assert.That(ColonyPowerProcessor.FuelReserveUnits(_earth, "uranium"), Is.EqualTo(359));
+        double before = Stock("uranium");
         ColonyPowerProcessor.RunDay(_earth);
         double kg = Power.Demand_kW / 0.92 * 86400 / (0.33 * 40e6 * 1000);
-        Assert.That(before - Stock("fissile-fuels"), Is.EqualTo(kg).Within(1e-9));
+        Assert.That(before - Stock("uranium"), Is.EqualTo(kg).Within(1e-9));
         Assert.That(kg, Is.LessThan(0.5));
     }
 
@@ -240,7 +241,7 @@ public class ColonyPowerEnforcementTests
         Assert.That(Power.TierSatisfaction[PowerTier.LifeSupport], Is.EqualTo(0));
         Assert.That(_events.Count(e => e.EventType == EventType.PlantOutOfFuel), Is.EqualTo(1), "one warning per run-out");
 
-        // A methalox turbine alongside: when the thermal plant's fuel gives out mid-day,
+        // An oxidiser turbine on Hydrogen alongside: when the thermal plant's fuel gives out mid-day,
         // the turbine covers the rest of the demand.
         SetStock("hydrocarbons", 3000);
         _earth.AddComponent(TemplateDesign("oxidiser-turbine", ("Size", 5)));
@@ -250,7 +251,7 @@ public class ColonyPowerEnforcementTests
         double demandGen = Power.Demand_kW / 0.92;
         double thermal = hydrocarbons / (86400 * ThermalKgPerKJ);
         Assert.That(Power.Dispatched_kW, Is.EqualTo(demandGen).Within(1e-6));
-        Assert.That(Power.FuelBurnt_kgLastDay["methalox"],
+        Assert.That(Power.FuelBurnt_kgLastDay["hydrogen"],
             Is.EqualTo((demandGen - thermal) * 86400 * TurbineKgPerKJ).Within(1e-6));
         Assert.That(Power.TierSatisfaction.Values, Is.All.EqualTo(1));
         Assert.That(_events.Count(e => e.EventType == EventType.PlantOutOfFuel), Is.EqualTo(2), "back in stock, then out again");
@@ -259,13 +260,13 @@ public class ColonyPowerEnforcementTests
     [Test]
     public void Market_HoldsThePlantRunway_AndBidsForTheShortfall()
     {
-        var full = PlannedListing("fissile-fuels");
+        var full = PlannedListing("uranium");
         Assert.That(full, Is.Not.Null, "the fuel pile is listed");
         Assert.That(full!.SellQuantity, Is.EqualTo(0), "the whole stock is the runway");
         Assert.That(full.BuyQuantity, Is.EqualTo(0));
 
-        SetStock("fissile-fuels", 100);
-        var low = PlannedListing("fissile-fuels");
+        SetStock("uranium", 100);
+        var low = PlannedListing("uranium");
         Assert.That(low!.BuyQuantity, Is.EqualTo(359 - 100));
         Assert.That(low.SellQuantity, Is.EqualTo(0));
     }
@@ -314,9 +315,9 @@ public class ColonyPowerEnforcementTests
     [Test]
     public void DailyProcessor_RunsTheDay()
     {
-        double before = Stock("fissile-fuels");
+        double before = Stock("uranium");
         new ColonyPowerHotloopProcessor().ProcessManager(_sol, 86400);
-        Assert.That(Stock("fissile-fuels"), Is.LessThan(before));
+        Assert.That(Stock("uranium"), Is.LessThan(before));
         Assert.That(Power.LastDispatch, Is.EqualTo(_earth.StarSysDateTime));
         Assert.That(new ColonyPowerHotloopProcessor().FirstRunOffset, Is.LessThan(new ResearchProcessor().FirstRunOffset));
         Assert.That(new ColonyPowerHotloopProcessor().FirstRunOffset, Is.LessThan(new MineResourcesProcessor().FirstRunOffset));

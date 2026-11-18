@@ -327,8 +327,8 @@ namespace Pulsar4X.Tests
         void AttachFuel(Entity ship, Entity faction, double deltaV)
         {
             var data = faction.GetDataBlob<FactionInfoDB>().Data;
-            data.Unlock("methalox");
-            var fuel = data.CargoGoods.GetAny("methalox");
+            data.Unlock("hydrocarbons");
+            var fuel = data.CargoGoods.GetAny("hydrocarbons");
             Assert.IsNotNull(fuel);
             var thrust = new NewtonThrustAbilityDB(fuel.UniqueID)
             {
@@ -348,7 +348,7 @@ namespace Pulsar4X.Tests
             var mass = ship.GetDataBlob<MassVolumeDB>();
             var faction = ship.FactionOwnerID;
             Assert.IsTrue(Game.GlobalManager.TryGetGlobalEntityById(faction, out var factionEntity));
-            var fuel = factionEntity.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+            var fuel = factionEntity.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
             double dry = mass.MassDry;
             double fuelMass = Math.Max(1, dry * (Math.Exp(deltaV / thrust.ExhaustVelocity) - 1));
             long units = Math.Max(1, (long)Math.Round(fuelMass / fuel.MassPerUnit));
@@ -363,7 +363,7 @@ namespace Pulsar4X.Tests
 
         double FuelMass(Entity ship)
         {
-            var fuel = ship.GetFactionOwner.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+            var fuel = ship.GetFactionOwner.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
             return ship.GetDataBlob<CargoStorageDB>().GetMassStored(fuel, false);
         }
 

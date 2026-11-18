@@ -59,15 +59,15 @@ namespace Pulsar4X.Energy
 
         /// <summary>
         /// The stock asteroid miner (default-ship-design-miner, "Prospector I" in the warp-tech start)
-        /// as move-cost numbers, with its starting methalox: what hauls belt ore to a depot. Kept as
+        /// as move-cost numbers, with its starting hydrocarbons: what hauls belt ore to a depot. Kept as
         /// numbers because a depot is priced before any ship exists; a test checks them against the
         /// live ship.
         /// </summary>
         public static MoveCostShip ReferenceHauler => new()
         {
-            DryMass_kg = 49422, // crew plan phase 1: + crew quarters (10 + 1 berths); phase 4: 4 t reactor
+            DryMass_kg = 49471, // crew plan phase 1: + crew quarters (10 + 1 berths); phase 4: 4 t reactor; mined-only: +49 kg, its armour is now Hydrocarbons (denser than the old plastic)
             FuelMass_kg = 2393601,
-            FuelType = "methalox",
+            FuelType = "hydrocarbons",
             ExhaustVelocity = 3615,
             FuelBurnRate = 600,
             ThrustInNewtons = 2169000,
@@ -85,9 +85,9 @@ namespace Pulsar4X.Energy
             // Crew plan phase 4: 17 crew aboard at 1 kW each, must-run.
             LifeSupport_kW = 17,
             // Energy phase 6: the steam turbine makes electricity at 30% of its core heat and
-            // burns heat / 40e9 kg/s of fissile fuel, so 1 / (0.3 × 40e9) kg per kJ at any size.
+            // burns heat / 40e9 kg/s of uranium, so 1 / (0.3 × 40e9) kg per kJ at any size.
             ReactorOutputMax = ReferenceReactor_kW,
-            ReactorFuelType = "fissile-fuels",
+            ReactorFuelType = "uranium",
             ReactorFuelPerKJ = 50.0 / 40e9 / 15,
         };
 

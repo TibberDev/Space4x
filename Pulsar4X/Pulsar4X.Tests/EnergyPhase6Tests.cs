@@ -70,7 +70,7 @@ public class EnergyPhase6Tests
         Assert.That(gen.FuelUsedAtMax, Is.EqualTo(50 / 40e9).Within(1e-21));
         Assert.That(gen.FuelUsedAtMax / (18.75 / 40e9), Is.EqualTo(50 / 18.75).Within(1e-9), "2.67x the old burn");
         Assert.That(gen.Lifetime, Is.EqualTo(600 / (50 / 40e9)).Within(1), "the 600 kg load lasts as long as it burns");
-        Assert.That(gen.FuelType, Is.EqualTo("fissile-fuels"));
+        Assert.That(gen.FuelType, Is.EqualTo("uranium"));
     }
 
     [TestCase(4000)]
@@ -106,7 +106,7 @@ public class EnergyPhase6Tests
     {
         const double halfLife = 1000;
         var ship = OwnedShip();
-        var rtg = new EnergyGenerationAtb("fissile-fuels", 0.0, "electricity", 10, 0.0, halfLife, 0.0);
+        var rtg = new EnergyGenerationAtb("uranium", 0.0, "electricity", 10, 0.0, halfLife, 0.0);
         rtg.OnComponentInstallation(ship, null!);
         var power = ship.GetDataBlob<EnergyGenAbilityDB>();
         Assert.That(power.DecaySources, Has.Count.EqualTo(1));
@@ -153,7 +153,7 @@ public class EnergyPhase6Tests
         var gen = design.GetAttribute<EnergyGenerationAtb>();
         Assert.That(design.MassPerUnit, Is.EqualTo(250));
         Assert.That(gen.PowerOutputMax, Is.EqualTo(250 * 60 / 1000.0).Within(1e-9));
-        Assert.That(gen.FuelType, Is.EqualTo("hydrolox"));
+        Assert.That(gen.FuelType, Is.EqualTo("hydrogen"));
         Assert.That(gen.TankFed, Is.EqualTo(1));
         Assert.That(gen.HalfLife_s, Is.EqualTo(0));
         // 15 kW / (13,300 kJ/kg x 0.6) kg/s.
@@ -165,12 +165,12 @@ public class EnergyPhase6Tests
     public void FuelCell_BurnsPropellantFromTheHold_AndStopsWhenItIsGone()
     {
         var ship = OwnedShip();
-        var fuel = Data.CargoGoods.GetAny("hydrolox")!;
+        var fuel = Data.CargoGoods.GetAny("hydrogen")!;
         var cargo = new CargoStorageDB(fuel.CargoTypeID, 1e9);
         ship.SetDataBlob(cargo);
         cargo.AddCargoByUnit(fuel, 10);
         double kgPerS = 0.01; // at 10 kW
-        var cell = new EnergyGenerationAtb("hydrolox", kgPerS, "electricity", 10, 0.0, 0.0, 1.0);
+        var cell = new EnergyGenerationAtb("hydrogen", kgPerS, "electricity", 10, 0.0, 0.0, 1.0);
         cell.OnComponentInstallation(ship, null!);
         var power = ship.GetDataBlob<EnergyGenAbilityDB>();
         Assert.That(power.MaxOutputFromCells, Is.EqualTo(10));
@@ -202,12 +202,12 @@ public class EnergyPhase6Tests
     public void FuelCell_RunsAfterTheReactor()
     {
         var ship = OwnedShip();
-        var fuel = Data.CargoGoods.GetAny("hydrolox")!;
+        var fuel = Data.CargoGoods.GetAny("hydrogen")!;
         var cargo = new CargoStorageDB(fuel.CargoTypeID, 1e9);
         ship.SetDataBlob(cargo);
         cargo.AddCargoByUnit(fuel, 1000);
-        new EnergyGenerationAtb("fissile-fuels", 0.001, "electricity", 10, 1e6).OnComponentInstallation(ship, null!);
-        new EnergyGenerationAtb("hydrolox", 0.01, "electricity", 10, 0.0, 0.0, 1.0).OnComponentInstallation(ship, null!);
+        new EnergyGenerationAtb("uranium", 0.001, "electricity", 10, 1e6).OnComponentInstallation(ship, null!);
+        new EnergyGenerationAtb("hydrogen", 0.01, "electricity", 10, 0.0, 0.0, 1.0).OnComponentInstallation(ship, null!);
         var power = ship.GetDataBlob<EnergyGenAbilityDB>();
         Assert.That(power.TotalOutputMax, Is.EqualTo(20));
         var (reactor, cells) = EnergyGenProcessor.BurnRates(power, 15);
@@ -224,7 +224,7 @@ public class EnergyPhase6Tests
     public void Sensor_RunsOnSpareOutput_WhenTheStoreIsFull_AndIsShedInWarp()
     {
         var ship = OwnedShip();
-        var reactor = new EnergyGenerationAtb("fissile-fuels", 0.001, "electricity", 15, 1e6);
+        var reactor = new EnergyGenerationAtb("uranium", 0.001, "electricity", 15, 1e6);
         reactor.OnComponentInstallation(ship, null!);
         var sensor = new PowerConsumerAtb(0.055, 2);
         sensor.OnComponentInstallation(ship, null!);
@@ -265,7 +265,7 @@ public class EnergyPhase6Tests
     public void DrawEnergy_UsesSpareOutputFirst_ThenTheBattery()
     {
         var ship = OwnedShip();
-        new EnergyGenerationAtb("fissile-fuels", 0.001, "electricity", 1, 1e6).OnComponentInstallation(ship, null!);
+        new EnergyGenerationAtb("uranium", 0.001, "electricity", 1, 1e6).OnComponentInstallation(ship, null!);
         new EnergyStoreAtb("electricity", 1000).OnComponentInstallation(ship, null!);
         var power = ship.GetDataBlob<EnergyGenAbilityDB>();
         power.EnergyStored["electricity"] = power.EnergyStoreMax["electricity"];
@@ -287,7 +287,7 @@ public class EnergyPhase6Tests
         var ship = EnergyPricing.ReferenceHauler;
         double d = 0.1 * UniversalConstants.Units.MetersPerAu;
         var cost = MoveCostCalculator.Warp(ship, d);
-        Assert.That(cost.FuelUsed_kg["fissile-fuels"], Is.EqualTo(cost.EnergyUsed_kJ * 50 / 40e9 / 15).Within(1e-15));
+        Assert.That(cost.FuelUsed_kg["uranium"], Is.EqualTo(cost.EnergyUsed_kJ * 50 / 40e9 / 15).Within(1e-15));
 
         // 10 kW of free output (solar or isotopes) and fuel cells besides: sustain (15 kW) takes the
         // free 10 then 5 from the reactor; creation is made back by all three by output.
@@ -295,21 +295,21 @@ public class EnergyPhase6Tests
         var mixed = ship with
         {
             FreeOutputMax = 10, EnergyOutputMax = 35, ReactorOutputMax = 15, LifeSupport_kW = 0,
-            CellOutputMax = 10, CellFuelType = "hydrolox", CellFuelPerKJ = 1e-4,
+            CellOutputMax = 10, CellFuelType = "hydrogen", CellFuelPerKJ = 1e-4,
         };
         var c = MoveCostCalculator.Warp(mixed, d);
         double duration = c.Duration_s;
         double reactorKJ = 5 * duration + ship.BubbleCreationCost * 15 / 35;
         double cellKJ = ship.BubbleCreationCost * 10 / 35;
-        Assert.That(c.FuelUsed_kg["fissile-fuels"], Is.EqualTo(reactorKJ * ship.ReactorFuelPerKJ).Within(1e-12));
-        Assert.That(c.FuelUsed_kg["hydrolox"], Is.EqualTo(cellKJ * 1e-4).Within(1e-9));
+        Assert.That(c.FuelUsed_kg["uranium"], Is.EqualTo(reactorKJ * ship.ReactorFuelPerKJ).Within(1e-12));
+        Assert.That(c.FuelUsed_kg["hydrogen"], Is.EqualTo(cellKJ * 1e-4).Within(1e-9));
 
         // Crew plan phase 4: 8 kW of life support already takes the free 10 kW's first 8, so the 15 kW
         // sustain takes the other 2 free, then 13 from the reactor; creation is shared as before.
         var crewed = mixed with { LifeSupport_kW = 8 };
         var cc = MoveCostCalculator.Warp(crewed, d);
         double crewedReactorKJ = 13 * cc.Duration_s + ship.BubbleCreationCost * 15 / 35;
-        Assert.That(cc.FuelUsed_kg["fissile-fuels"], Is.EqualTo(crewedReactorKJ * ship.ReactorFuelPerKJ).Within(1e-12));
+        Assert.That(cc.FuelUsed_kg["uranium"], Is.EqualTo(crewedReactorKJ * ship.ReactorFuelPerKJ).Within(1e-12));
 
         var none = ship with { ReactorFuelPerKJ = 0 };
         Assert.That(MoveCostCalculator.Warp(none, d).FuelUsed_kg, Is.Empty);
@@ -318,7 +318,7 @@ public class EnergyPhase6Tests
     [Test]
     public void FissileFuel_EmbodiedEnergy_MatchesTheOracle()
     {
-        Assert.That(EmbodiedEnergy.For(Data).PerKg("fissile-fuels"), Is.EqualTo(EnergyPriceOracle.Fissile_kWhPerKg).Within(1e-9));
+        Assert.That(EmbodiedEnergy.For(Data).PerKg("uranium"), Is.EqualTo(EnergyPriceOracle.Uranium_kWhPerKg).Within(1e-9));
     }
 
     // ---- crew ----

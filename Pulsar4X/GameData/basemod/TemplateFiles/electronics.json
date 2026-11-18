@@ -15,8 +15,9 @@
         "BuildPointCost": "[Mass]"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.5",
-        "plastic": "[Mass] * 0.2",
+        "iron": "[Mass] * 0.445",
+        "chromium": "[Mass] * 0.055",
+        "hydrocarbons": "[Mass] * 0.1",
         "aluminium": "[Mass] * 0.1",
         "copper": "[Mass] * 0.1"
       },
@@ -147,8 +148,9 @@
         "BuildPointCost": "[Mass]"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.5",
-        "plastic": "[Mass] * 0.2",
+        "iron": "[Mass] * 0.445",
+        "chromium": "[Mass] * 0.055",
+        "hydrocarbons": "[Mass] * 0.1",
         "aluminium": "[Mass] * 0.1",
         "copper": "[Mass] * 0.1"
       },
@@ -232,8 +234,9 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Survey Speed') / 1, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.4",
-        "plastic": "[Mass] * 0.2",
+        "iron": "[Mass] * 0.356",
+        "chromium": "[Mass] * 0.044",
+        "hydrocarbons": "[Mass] * 0.1",
         "aluminium": "[Mass] * 0.1",
         "copper": "[Mass] * 0.3"
       },
@@ -241,7 +244,7 @@
       "MountType": "ShipComponent, ShipCargo",
       "CargoTypeID": "general-storage",
       "IndustryTypeID": "component-construction",
-      "Properties":[
+      "Properties": [
         {
           "Name": "Power Draw",
           "Units": "kW",
@@ -299,8 +302,9 @@
         "BuildPointCost": "[Mass] * Pow(PropertyValue('Survey Speed') / 1, 0.15)"
       },
       "ResourceCost": {
-        "stainless-steel": "[Mass] * 0.4",
-        "plastic": "[Mass] * 0.2",
+        "iron": "[Mass] * 0.356",
+        "chromium": "[Mass] * 0.044",
+        "hydrocarbons": "[Mass] * 0.1",
         "aluminium": "[Mass] * 0.1",
         "copper": "[Mass] * 0.3"
       },
@@ -308,7 +312,7 @@
       "MountType": "ShipComponent, ShipCargo",
       "CargoTypeID": "general-storage",
       "IndustryTypeID": "component-construction",
-      "Properties":[
+      "Properties": [
         {
           "Name": "Power Draw",
           "Units": "kW",

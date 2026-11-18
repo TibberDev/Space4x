@@ -461,7 +461,7 @@ public class BatteryTests
         {
             EnergyType = energyType,
             MaxOutputFromReactor = reactorKw,
-            TotalFuelUseAtMax = (fuelKgPerS > 0 ? "fissile-fuels" : "", fuelKgPerS),
+            TotalFuelUseAtMax = (fuelKgPerS > 0 ? "uranium" : "", fuelKgPerS),
             LocalFuel = fuel,
             StoreCharge_kW = charge,
             StoreDischarge_kW = discharge,

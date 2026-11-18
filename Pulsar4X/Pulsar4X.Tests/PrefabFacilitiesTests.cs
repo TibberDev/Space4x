@@ -32,7 +32,6 @@ public class PrefabFacilitiesTests
         AssertSiteOnly(store, "research-lab");
         AssertSiteOnly(store, "shipyard");
         AssertSiteOnly(store, "factory-site");
-        AssertSiteOnly(store, "refinery-site");
         AssertSiteOnly(store, "local-construction-site");
         AssertSiteOnly(store, "logistics-office-site");
         AssertSiteOnly(store, "warehouse-site");
@@ -40,7 +39,6 @@ public class PrefabFacilitiesTests
         AssertSiteOnly(store, "spaceport");
 
         AssertCrate(store, "factory");
-        AssertCrate(store, "refinery");
         AssertCrate(store, "local-construction");
         AssertCrate(store, "warehouse-facility");
         AssertCrate(store, "planetary-spaceport-crate");
@@ -190,8 +188,9 @@ public class PrefabFacilitiesTests
             ("Min Pressure", 0.0),
             ("Max Pressure", 0.2));
 
-        double earthFactor = earth.ResourceCosts["iron"] / (earth.MassPerUnit * 0.45);
-        double lunaFactor = luna.ResourceCosts["iron"] / (luna.MassPerUnit * 0.45);
+        // Iron is 59.6% of the mass at hostility 1: 45% iron plus the iron in the old space-crete and steel.
+        double earthFactor = earth.ResourceCosts["iron"] / (earth.MassPerUnit * 0.596);
+        double lunaFactor = luna.ResourceCosts["iron"] / (luna.MassPerUnit * 0.596);
         Assert.That(earthFactor, Is.EqualTo(1).Within(0.05));
         Assert.That(lunaFactor, Is.GreaterThan(earthFactor));
     }

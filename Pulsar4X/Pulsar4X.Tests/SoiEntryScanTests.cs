@@ -328,7 +328,7 @@ public class SoiEntryScanTests
         var insidePos = phobosPos + outDir * (soi * 0.5);
         Place(newton, mars, insidePos, phobosVel);
         Assert.That((newton.GetDataBlob<PositionDB>().RelativePosition - phobosPos).Length(), Is.LessThan(soi));
-        var thrust = new NewtonThrustAbilityDB("methalox");
+        var thrust = new NewtonThrustAbilityDB("hydrocarbons");
         thrust.ExhaustVelocity = 3000;
         thrust.FuelBurnRate = 0;
         thrust.ThrustInNewtons = 1;

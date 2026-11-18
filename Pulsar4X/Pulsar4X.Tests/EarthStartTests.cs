@@ -55,7 +55,7 @@ public class EarthStartTests
         // Site office capacity is 20. OfferStock fills up to that many stocked piles (Earth
         // currently has fewer than 20 distinct stocked goods, so listings stay under capacity).
         Assert.That(book.Listings.Count, Is.GreaterThan(2).And.LessThanOrEqualTo(20));
-        Assert.That(book.Listings.Keys, Does.Contain("stainless-steel"));
+        Assert.That(book.Listings.Keys, Does.Contain("iron"));
         foreach (var cargoId in book.Listings.Keys)
         {
             // Plant fuel keeps its runway back from the market (energy phase 2).
@@ -65,17 +65,11 @@ public class EarthStartTests
             Assert.That(book.Listings[cargoId].Ask, Is.EqualTo(0));
         }
 
-        long steel = StockOf(colony, "stainless-steel");
-        var steelRow = colony.GetDataBlob<ColonyMarketPolicyDB>().Rows["stainless-steel"];
-        Assert.That(steelRow.Max, Is.EqualTo(steel + 100));
-        Assert.That(steelRow.AutoProduce, Is.False);
-        Assert.That(steelRow.Bid, Is.EqualTo(0));
+        // Mined-only resources: nothing at Earth is refined, so Offer stock queues no batch.
         var jobs = colony.GetDataBlob<IndustryAbilityDB>().ProductionLines.Values
             .SelectMany(line => line.Jobs)
             .ToList();
-        Assert.That(jobs, Has.Count.EqualTo(1));
-        Assert.That(jobs[0].ItemGuid, Is.EqualTo("stainless-steel"));
-        Assert.That(jobs[0].NumberOrdered, Is.EqualTo(1));
+        Assert.That(jobs, Is.Empty);
 
         var hermes = colony.GetDataBlob<LaunchComplexDB>().LaunchQueue
             .Single(entry => entry.ShipName == "ISS Hermes");

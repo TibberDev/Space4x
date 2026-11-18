@@ -278,13 +278,12 @@ public class EarlyTechStartTests
             .Single();
 
         var installations = colony.GetDataBlob<ComponentInstancesDB>().ComponentsByDesign.Keys.ToList();
-        foreach (var id in new[] { "default-design-mine", "default-design-refinery-site", "default-design-factory-site",
+        foreach (var id in new[] { "default-design-mine", "default-design-factory-site",
                      "default-design-shipyard", "default-design-research-lab", "default-design-city-hall" })
             Assert.That(installations, Does.Contain(id), id);
         Assert.That(installations, Does.Not.Contain("default-design-auto-mine"));
         var byDesign = colony.GetDataBlob<ComponentInstancesDB>().ComponentsByDesign;
         Assert.That(byDesign["default-design-factory-site"], Has.Count.EqualTo(1), "one installed factory in a fresh Earth start");
-        Assert.That(byDesign["default-design-refinery-site"], Has.Count.EqualTo(1), "one installed refinery in a fresh Earth start");
         Assert.That(byDesign["default-design-logistics-office-site"], Has.Count.EqualTo(1), "one site logistics office");
         Assert.That(byDesign["default-design-local-construction-site"], Has.Count.EqualTo(5), "five site construction offices");
         Assert.That(byDesign["default-design-research-lab"], Has.Count.EqualTo(1), "one installed research lab in a fresh Earth start");
@@ -306,7 +305,7 @@ public class EarlyTechStartTests
         Assert.That(cargo.TypeStores["general-storage"].MaxVolume, Is.EqualTo(1000));
         Assert.That(cargo.TypeStores["general-storage"].FreeVolume, Is.EqualTo(1000));
 
-        foreach (var id in new[] { "factory", "refinery", "factory-site", "logistics-office", "planetary-spaceport-crate" })
+        foreach (var id in new[] { "factory", "factory-site", "logistics-office", "planetary-spaceport-crate" })
         {
             var designer = new ComponentDesigner(info.Data.ComponentTemplates[id], info.Data, tech);
             if (designer.ComponentDesignProperties.TryGetValue("Size", out var size))
@@ -362,7 +361,7 @@ public class EarlyTechStartTests
         var data = faction.GetDataBlob<FactionInfoDB>().Data;
 
         // Basic industry and rockets are known.
-        foreach (var known in new[] { "mine", "refinery", "factory", "shipyard", "conventional-engine", "solarArray", "ship-command" })
+        foreach (var known in new[] { "mine", "factory", "shipyard", "conventional-engine", "solarArray", "ship-command" })
             Assert.That(data.ComponentTemplates.ContainsKey(known), Is.True, known);
 
         // Advanced systems are not, but can be researched toward.
@@ -556,7 +555,7 @@ public class EarlyTechStartTests
         var design = faction.GetDataBlob<FactionInfoDB>().ShipDesigns["early-ship-design-starship"];
         double r = earth.GetDataBlob<MassVolumeDB>().RadiusInM * 6;
         var buddy = ShipFactory.CreateShip(design, faction, new Pulsar4X.Orbital.Vector3(r, 0, 0), earth, "Buddy");
-        var methalox = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("methalox");
+        var methalox = faction.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons");
         double shipFuel = ship.GetDataBlob<CargoStorageDB>().GetMassStored(methalox, false);
         Assert.That(shipFuel, Is.GreaterThan(0), "the starting ship is fuelled");
         CargoTransferProcessor.AddRemoveCargoMass(buddy.GetDataBlob<CargoStorageDB>(), methalox, shipFuel);
@@ -606,13 +605,13 @@ public class EarlyTechStartTests
         Assert.That(info.ComponentDesigns.ContainsKey("default-design-NTR1.8"), Is.False,
             "the stock NERVA must not bypass the nuclear gate");
         Assert.That(info.ComponentDesigns.Values.Any(d => d.TemplateID == "scntr-engine"), Is.False);
-        Assert.That(data.CargoGoods.GetAny("ntp"), Is.Null);
+        Assert.That(data.CargoGoods.GetAny("hydrogen"), Is.Not.Null, "Hydrogen is a mined resource, known from the start");
         Assert.That(data.ComponentTemplates.ContainsKey("conventional-engine"), Is.True);
 
         data.IncrementTechLevel("tech-early-nuclear-power");
 
         Assert.That(data.ComponentTemplates.ContainsKey("scntr-engine"), Is.True);
-        Assert.That(data.CargoGoods.GetAny("ntp"), Is.Not.Null,
+        Assert.That(data.CargoGoods.GetAny("hydrogen"), Is.Not.Null,
             "the template's default nuclear propellant must be available too");
         Assert.DoesNotThrow(() => new ComponentDesigner(data.ComponentTemplates["scntr-engine"], data,
             faction.GetDataBlob<FactionTechDB>()));
@@ -625,16 +624,16 @@ public class EarlyTechStartTests
     {
         var (_, faction) = StartGameLikeTheMenu(EarlyTech);
         var data = faction.GetDataBlob<FactionInfoDB>().Data;
-        Assert.That(data.CargoGoods.GetAny("fissile-fuels"), Is.Null,
-            "nuclear fuel is not available before nuclear research");
+        Assert.That(data.CargoGoods.GetAny("uranium"), Is.Not.Null,
+            "Uranium is a mined resource, known before nuclear research");
 
         data.IncrementTechLevel("tech-early-nuclear-power");
 
         Assert.DoesNotThrow(() => new ComponentDesigner(data.ComponentTemplates[templateId], data,
             faction.GetDataBlob<FactionTechDB>()), "selecting the newly unlocked template must not crash");
-        Assert.That(data.CargoGoods.GetAny("fissile-fuels"), Is.Not.Null,
+        Assert.That(data.CargoGoods.GetAny("uranium"), Is.Not.Null,
             "nuclear research must also make its processed fuel available");
-        Assert.That(data.LockedCargoGoods.Contains("fissile-fuels"), Is.False);
+        Assert.That(data.LockedCargoGoods.Contains("uranium"), Is.False);
     }
 
     [Test]

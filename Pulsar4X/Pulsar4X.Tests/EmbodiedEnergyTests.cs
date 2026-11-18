@@ -42,6 +42,7 @@ public class EmbodiedEnergyTests
         _store = new ModDataStore();
         new ModLoader().LoadModManifest("Data/basemod/modInfo.json", _store);
         new ModLoader().LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", _store);
+        TestMaterials.AddSteel(_store);
 
         _game = new Game(new NewGameSettings { MaxSystems = 1, CreatePlayerFaction = false }, _store);
         _game.Settings.EnforceSingleThread = true;
@@ -62,18 +63,11 @@ public class EmbodiedEnergyTests
     static double X(string mineral) => EnergyPriceOracle.Ext(mineral);
     static double Plastic => (12 + 1 * X("hydrocarbons")) / 2;
 
-    /// <summary>Hand-worked kWh per unit of every good a stock design uses (materials.json recipes, minerals.json extraction).</summary>
+    /// <summary>Hand-worked kWh per unit of the test recipes (TestMaterials); every other good is its extraction energy.</summary>
     static readonly Dictionary<string, double> HandE = new()
     {
         ["stainless-steel"] = EnergyPriceOracle.Steel_kWh,     // (70 + 88 Fe + 11 Cr + 1 HC) / 100
-        ["methalox"] = EnergyPriceOracle.Methalox_kWh,         // (4250 + 4250 HC) / 8500
-        ["rp-1"] = (2975 + 4250 * X("hydrocarbons")) / 8500,
-        ["hydrolox"] = (19550 + 4250 * X("hydrocarbons")) / 8500,
-        ["ntp"] = (1200 + 100 * X("hydrocarbons") + 1 * X("fissionables")) / 100,
         ["plastic"] = Plastic,
-        ["fissile-fuels"] = (400 + 100 * X("fissionables") + 10 * X("hydrocarbons")) / 1,
-        ["electronics"] = (1000 + 2 * X("copper") + 2 * Plastic + 1 * X("aluminium") + 1 * X("silicon")) / 5,
-        ["space-crete"] = (50 + 70 * X("regolith") + 10 * X("silicon") + 10 * X("aluminium") + 5 * X("iron") + 5 * X("water")) / 100,
     };
 
     static double Hand(string id) => HandE.TryGetValue(id, out var e) ? e : X(id);
@@ -81,17 +75,17 @@ public class EmbodiedEnergyTests
     // ---- E by hand ----
 
     [Test]
-    public void SteelAndMethalox_MatchTheHandCalculation()
+    public void SteelAndHydrocarbons_MatchTheHandCalculation()
     {
         // (70 kWh + 88 x 0.388 iron + 11 x 0.8 chromium + 1 x 0.3 hydrocarbons) / 100
         Assert.That(E.PerUnit("stainless-steel"), Is.EqualTo(1.13244).Within(1e-12));
-        // (4,250 kWh + 4,250 kg hydrocarbons x 0.3) / 8,500
-        Assert.That(E.PerUnit("methalox"), Is.EqualTo(0.65).Within(1e-12));
+        // Mined and burned as it is: extraction only.
+        Assert.That(E.PerUnit("hydrocarbons"), Is.EqualTo(0.3).Within(1e-12));
         Assert.That(E.PerUnit("iron"), Is.EqualTo(0.388).Within(1e-12), "extraction only");
         Assert.That(E.PerUnit("water"), Is.EqualTo(0.188).Within(1e-12));
         foreach (var (id, e) in HandE)
             Assert.That(E.PerUnit(id), Is.EqualTo(e).Within(1e-9), id);
-        Assert.That(E.PerKg("methalox"), Is.EqualTo(0.65).Within(1e-12), "1 kg a unit");
+        Assert.That(E.PerKg("hydrocarbons"), Is.EqualTo(0.3).Within(1e-12), "1 kg a unit");
         Assert.That(E.PerUnit(EmbodiedEnergy.ElectricityId), Is.EqualTo(1 / 3600.0).Within(1e-15), "a unit of electricity is 1 kJ");
         Assert.That(E.PerUnit("no-such-good"), Is.EqualTo(0));
         Assert.That(E.Unknown, Does.Contain("no-such-good"));
@@ -164,8 +158,8 @@ public class EmbodiedEnergyTests
         Assert.That(EmbodiedEnergy.For(new FactionDataStore(_store)), Is.Not.SameAs(E));
         // Locked goods are priced too (a faction can be offered what it cannot make yet).
         var locked = new FactionDataStore(_store);
-        Assert.That(locked.CargoGoods.Contains("methalox"), Is.False);
-        Assert.That(EmbodiedEnergy.For(locked).PerUnit("methalox"), Is.EqualTo(EnergyPriceOracle.Methalox_kWh).Within(1e-12));
+        Assert.That(locked.CargoGoods.Contains("hydrocarbons"), Is.False);
+        Assert.That(EmbodiedEnergy.For(locked).PerUnit("hydrocarbons"), Is.EqualTo(EnergyPriceOracle.Hydrocarbons_kWh).Within(1e-12));
         // A mineral's extraction energy comes from the data and can be changed.
         var water = (Mineral)locked.LockedCargoGoods.GetAny("water")!;
         Assert.That(water.ExtractionEnergy, Is.EqualTo(EnergyPriceOracle.Water_kWh));
@@ -183,7 +177,7 @@ public class EmbodiedEnergyTests
         Assert.That(_game.Settings.PriceMarkup, Is.EqualTo(4.0));
         Assert.That(_game.Settings.SeedBidShare, Is.EqualTo(0.5));
         Assert.That(EnergyPricing.SeedAsk(_game, Info.Data, "stainless-steel"), Is.EqualTo(5.66m), "1.13244 kWh x 1 x 5");
-        Assert.That(EnergyPricing.SeedAsk(_game, Info.Data, "methalox"), Is.EqualTo(3.25m), "0.65 x 5, no delivery off a depot");
+        Assert.That(EnergyPricing.SeedAsk(_game, Info.Data, "hydrocarbons"), Is.EqualTo(1.50m), "0.3 x 5, no delivery off a depot");
 
         _game.Settings.CreditsPerKWh = 2;
         _game.Settings.PriceMarkup = 0;
@@ -196,7 +190,7 @@ public class EmbodiedEnergyTests
     /// <summary>Ceres seeds: the original hand-set price, then phase 5 (3afb7b5c, 0.05 kWh/kg minerals, no delivery).</summary>
     static readonly (string good, string side, decimal original, decimal phase5)[] CeresBefore =
     {
-        ("methalox", "ask", 3m, 2.63m),
+        ("hydrocarbons", "ask", 3m, 2.63m),
         ("iron", "ask", 2m, 0.25m),
         ("iron", "bid", 1m, 0.13m),
         ("water", "ask", 1m, 0.25m),
@@ -211,7 +205,7 @@ public class EmbodiedEnergyTests
         Assert.That(delivery, Is.GreaterThan(0));
         foreach (var (good, side, original, phase5) in CeresBefore)
         {
-            double kWh = (good == "methalox" ? EnergyPriceOracle.Methalox_kWh : EnergyPriceOracle.Ext(good)) + delivery;
+            double kWh = (good == "hydrocarbons" ? EnergyPriceOracle.Hydrocarbons_kWh : EnergyPriceOracle.Ext(good)) + delivery;
             decimal expected = side == "ask" ? EnergyPriceOracle.Ask(game, kWh) : EnergyPriceOracle.Bid(game, kWh);
             decimal now = side == "ask" ? policy.Rows[good].Ask : policy.Rows[good].Bid;
             Assert.That(now, Is.EqualTo(expected), $"{good} {side}");
@@ -219,7 +213,7 @@ public class EmbodiedEnergyTests
             TestContext.Out.WriteLine($"Ceres {good} {side}: E {kWh - delivery:0.####} + delivery {delivery:0.######} kWh; original {original}, phase 5 {phase5}, now {now} ({change:+0.0%;-0.0%})");
             Assert.That(Math.Abs(change), Is.LessThanOrEqualTo(0.5), $"{good} {side} within +/-50% of the original");
         }
-        Assert.That(policy.Rows["methalox"].Bid, Is.EqualTo(0));
+        Assert.That(policy.Rows["hydrocarbons"].Bid, Is.EqualTo(0));
         Assert.That(policy.Rows["water"].Bid, Is.EqualTo(0));
         decimal lot = CeresStart.LotPrice(game, data);
         Assert.That(lot, Is.EqualTo(EnergyPriceOracle.LotPrice(game)));
@@ -244,8 +238,8 @@ public class EmbodiedEnergyTests
         Assert.That(fromData["water"], Is.LessThan(fromData["iron"]));
         Assert.That(fromData["water"], Is.GreaterThan(fromData["regolith"]), "ice is cheap, not free: it has to be melted");
         Assert.That(fromData["iron"], Is.LessThan(fromData["copper"]));
-        Assert.That(fromData["copper"], Is.LessThan(fromData["fissionables"]));
-        Assert.That(fromData["fissionables"], Is.LessThan(fromData["tungsten"]));
+        Assert.That(fromData["copper"], Is.LessThan(fromData["uranium"]));
+        Assert.That(fromData["uranium"], Is.LessThan(fromData["tungsten"]));
         Assert.That(e.Unknown, Is.Empty);
     }
 
@@ -254,12 +248,13 @@ public class EmbodiedEnergyTests
     {
         var data = Info.Data;
         double hand = EnergyPriceOracle.Delivery_kWhPerKg(_game);
-        // 2 x (4e6/3 kJ + 15 kW x 0.2 AU / 20,233.5 m/s) / 3600 / 1e6 kg = 0.013064, plus (energy
-        // phase 6) the turbine's fissile fuel for those kJ at 1,403 kWh/kg: 0.0000055. Crew plan
+        // 2 x (4e6/3 kJ + 15 kW x 0.2 AU / 20,213.5 m/s) / 3600 / 1e6 kg = 0.013076, plus (energy
+        // phase 6) the turbine's uranium for those kJ at 10 kWh/kg: about 4e-8. Mined-only resources:
+        // +49 kg of Hydrocarbons armour slowed the drive from 20,233.5 m/s (0.013069 before). Crew plan
         // phase 1: the miner's crew quarters (+2,028 kg dry) slowed its drive from 22,029 m/s
         // (0.012064 before); phase 4: its 4 t reactor (+2,000 kg) from 21,087 m/s (0.012570 before).
         // Life support (17 kW) runs anyway and is not charged to the haul.
-        Assert.That(hand, Is.EqualTo(0.013069).Within(1e-6));
+        Assert.That(hand, Is.EqualTo(0.013076).Within(1e-6));
         Assert.That(EnergyPricing.DepotDeliveryKWhPerKg(_game, data), Is.EqualTo(hand).Within(1e-12));
         var legs = EnergyPricing.DepotDeliveryLegs(_game);
         Assert.That(legs, Has.Count.EqualTo(2));
@@ -268,8 +263,8 @@ public class EmbodiedEnergyTests
         // Energy phase 6: the only fuel is the reactor's, priced per kJ of the leg.
         foreach (var l in legs)
         {
-            Assert.That(l.FuelUsed_kg.Keys, Is.EquivalentTo(new[] { "fissile-fuels" }));
-            Assert.That(l.FuelUsed_kg["fissile-fuels"], Is.EqualTo(l.EnergyUsed_kJ * 50 / 40e9 / 15).Within(1e-12));
+            Assert.That(l.FuelUsed_kg.Keys, Is.EquivalentTo(new[] { "uranium" }));
+            Assert.That(l.FuelUsed_kg["uranium"], Is.EqualTo(l.EnergyUsed_kJ * 50 / 40e9 / 15).Within(1e-12));
         }
         TestContext.Out.WriteLine($"Delivery: {legs[0].EnergyUsed_kJ / 3600:N1} kWh back full + {legs[1].EnergyUsed_kJ / 3600:N1} kWh out empty"
             + $" over {EnergyPricing.ReferenceHold_kg:N0} kg = {hand:0.######} kWh/kg = {EnergyPricing.Credits(_game, hand):0.####} credits/kg"
@@ -296,7 +291,7 @@ public class EmbodiedEnergyTests
         MarketHistory.SeedPriorDays(depot);
         var book = depot.GetDataBlob<LogiBaseDB>();
         double delivery = EnergyPriceOracle.Delivery_kWhPerKg(game);
-        foreach (var (good, kWh) in new[] { ("methalox", EnergyPriceOracle.Methalox_kWh + delivery), ("iron", EnergyPriceOracle.Iron_kWh + delivery) })
+        foreach (var (good, kWh) in new[] { ("hydrocarbons", EnergyPriceOracle.Hydrocarbons_kWh + delivery), ("iron", EnergyPriceOracle.Iron_kWh + delivery) })
         {
             decimal ask = EnergyPriceOracle.Ask(game, kWh);
             decimal bid = good == "iron" ? EnergyPriceOracle.Bid(game, kWh) : 0;
@@ -318,10 +313,10 @@ public class EmbodiedEnergyTests
     public void Freight_IsFuelTimesItsE_PlusWarpEnergy_PerKgOfCargo()
     {
         var cost = new MoveCost(MoveCostMode.Burn, true, "", "",
-            new Dictionary<string, double> { ["methalox"] = 1000 }, 3.6e6, 0, 0, 0, 0, 0);
-        // (1,000 kg x E(methalox) kWh/kg + 3.6e6 kJ / 3600) / 10,000 kg
-        double perKg = (1000 * EnergyPriceOracle.Methalox_kWh + 1000) / 10000.0;
-        Assert.That(perKg, Is.EqualTo(0.165).Within(1e-12));
+            new Dictionary<string, double> { ["hydrocarbons"] = 1000 }, 3.6e6, 0, 0, 0, 0, 0);
+        // (1,000 kg x E(hydrocarbons) kWh/kg + 3.6e6 kJ / 3600) / 10,000 kg
+        double perKg = (1000 * EnergyPriceOracle.Hydrocarbons_kWh + 1000) / 10000.0;
+        Assert.That(perKg, Is.EqualTo(0.13).Within(1e-12));
         Assert.That(EnergyPricing.FreightKWhPerKg(cost, 10000, Info.Data), Is.EqualTo(perKg).Within(1e-12));
         Assert.That(EnergyPricing.FreightPerKg(_game, cost, 10000, Info.Data), Is.EqualTo(perKg * 5).Within(1e-12));
         Assert.That(EnergyPricing.FreightKWhPerKg(cost, 0, Info.Data), Is.EqualTo(0), "no cargo, no rate");
@@ -364,7 +359,7 @@ public class EmbodiedEnergyTests
                 + $" ({EnergyPricing.FreightPerKg(game, cost, hold_kg, data) * 1000:0.###} credits/t)");
         }
         var burn = MoveCostCalculator.Burn(full, 3000);
-        Assert.That(burn.FuelUsed_kg.Keys, Does.Contain("methalox").Or.Contain("rp-1").Or.Contain("hydrolox"));
+        Assert.That(burn.FuelUsed_kg.Keys, Does.Contain("hydrocarbons").Or.Contain("hydrogen"));
 
         // The depot's reference hauler is this ship as it starts, with a full 1,000 t hold.
         var live = MoveCostShip.FromEntity(prospector);

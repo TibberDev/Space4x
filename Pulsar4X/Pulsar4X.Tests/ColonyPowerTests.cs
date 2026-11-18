@@ -70,7 +70,6 @@ public class ColonyPowerTests
         double PerUnit(string id) { var l = Line(power, id); return (l.Nameplate_kW > 0 ? l.Nameplate_kW : l.Draw_kW) / l.Count; }
 
         Assert.That(PerUnit("default-design-mine"), Is.EqualTo(140).Within(5), "extraction ~140 kW at full accessibility");
-        Assert.That(PerUnit("default-design-refinery-site"), Is.InRange(100, 200), "refinery-site ~100-200 kW");
         Assert.That(PerUnit("default-design-factory-site"), Is.EqualTo(125).Within(1e-6), "factory-site 125 kW");
         Assert.That(PerUnit("default-design-shipyard"), Is.EqualTo(167 + 50).Within(1), "shipyard 167 kW + 50 kW hotel");
         var sites = Line(power, "default-design-local-construction-site");
@@ -99,7 +98,6 @@ public class ColonyPowerTests
         Assert.That(Line(power, "default-design-city-hall").Tier, Is.EqualTo(PowerTier.Control));
         Assert.That(Line(power, "default-design-passive-sensor").Tier, Is.EqualTo(PowerTier.Control));
         Assert.That(Line(power, "default-design-warehouse").Tier, Is.EqualTo(PowerTier.Storage));
-        Assert.That(Line(power, "default-design-refinery-site").Tier, Is.EqualTo(PowerTier.Industry));
         Assert.That(Line(power, "default-design-shipyard").Tier, Is.EqualTo(PowerTier.Industry));
         Assert.That(Line(power, "default-design-mine").Tier, Is.EqualTo(PowerTier.Mining));
         Assert.That(Line(power, "default-design-research-lab").Tier, Is.EqualTo(PowerTier.Research));
@@ -263,8 +261,8 @@ public class ColonyPowerTests
         var power = Power(_earthColony);
 
         Assert.That(power.Generation_kW, Is.EqualTo(seeded + 15000).Within(1e-6));
-        Assert.That(power.FuelAtFull_kgPerDay.Keys, Is.EquivalentTo(new[] { "fissile-fuels", "hydrocarbons", "methalox" }));
-        Assert.That(power.FuelAtFull_kgPerDay["methalox"], Is.EqualTo(5000 / (0.35 * 10 * 1000) * 86400).Within(1e-6));
+        Assert.That(power.FuelAtFull_kgPerDay.Keys, Is.EquivalentTo(new[] { "uranium", "hydrocarbons", "hydrogen" }));
+        Assert.That(power.FuelAtFull_kgPerDay["hydrogen"], Is.EqualTo(5000 / (0.35 * 10 * 1000) * 86400).Within(1e-6));
     }
 
     [Test]
@@ -279,8 +277,8 @@ public class ColonyPowerTests
         // Plants need fuel in the stockpile (phase 2): both fuels are there, only one can burn.
         colony.AddComponent(FactionDesign("default-design-fuel-tank-3000"));
         var goods = _player.GetDataBlob<FactionInfoDB>().Data.CargoGoods;
-        Pulsar4X.Storage.CargoTransferProcessor.AddRemoveCargoMass(colony, goods.GetAny("methalox")!, 1000);
         Pulsar4X.Storage.CargoTransferProcessor.AddRemoveCargoMass(colony, goods.GetAny("hydrocarbons")!, 1000);
+        Pulsar4X.Storage.CargoTransferProcessor.AddRemoveCargoMass(colony, goods.GetAny("hydrogen")!, 1000);
         ColonyPowerProcessor.Recalc(colony);
         var power = Power(colony);
 
@@ -300,7 +298,7 @@ public class ColonyPowerTests
         Assert.That(_store.Techs["tech-fission-power-plant"].Unlocks.Values.SelectMany(ids => ids), Does.Contain("fission-plant"));
         var fission = TemplateDesign("fission-plant", ("Size", 50));
         var atb = fission.GetAttribute<PowerPlantAtb>();
-        Assert.That(atb.FuelId, Is.EqualTo("fissile-fuels"));
+        Assert.That(atb.FuelId, Is.EqualTo("uranium"));
         Assert.That(atb.Output_kW, Is.EqualTo(50000));
         Assert.That(atb.FuelAtFull_kgPerS * 86400, Is.EqualTo(50000 / (0.33 * 40e6 * 1000) * 86400).Within(1e-12));
         Assert.That(fission.MassPerUnit, Is.EqualTo(50 * 20000), "50 W/kg");
@@ -511,12 +509,12 @@ public class ColonyPowerTests
         Assert.That(view.Plants, Has.Count.EqualTo(3), "seeded fission, the thermal plant and the start battery bank");
         Assert.That(view.Plants.Where(p => p.Kind != "Battery").Select(p => p.FuelName), Is.All.Not.Empty);
         Assert.That(view.Plants.Single(p => p.Kind == "Battery").Store_kJ, Is.EqualTo(power.StoreMax_kJ).Within(1e-6));
-        Assert.That(view.Fuel.Select(f => f.FuelId), Is.EquivalentTo(new[] { "fissile-fuels", "hydrocarbons" }));
-        var fissile = view.Fuel.Single(f => f.FuelId == "fissile-fuels");
+        Assert.That(view.Fuel.Select(f => f.FuelId), Is.EquivalentTo(new[] { "uranium", "hydrocarbons" }));
+        var fissile = view.Fuel.Single(f => f.FuelId == "uranium");
         Assert.That(fissile.Stock_kg, Is.EqualTo(359).Within(1e-9));
         Assert.That(fissile.RunwayDays, Is.Null, "no day run yet");
         ColonyPowerProcessor.RunDay(_earthColony);
-        fissile = projector.ProjectEntity(_earthColony, _player.Id).GetView<ColonyPowerView>()!.Fuel.Single(f => f.FuelId == "fissile-fuels");
+        fissile = projector.ProjectEntity(_earthColony, _player.Id).GetView<ColonyPowerView>()!.Fuel.Single(f => f.FuelId == "uranium");
         Assert.That(fissile.BurntLastDay_kg, Is.GreaterThan(0));
         Assert.That(fissile.RunwayDays, Is.EqualTo(fissile.Stock_kg / fissile.BurntLastDay_kg).Within(1e-6));
 

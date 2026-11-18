@@ -3,7 +3,7 @@
     "Type": "Armor",
     "Payload": {
       "UniqueID": "stainless-steel-armor",
-      "ResourceID": "stainless-steel",
+      "ResourceID": "iron",
       "Density": "7900"
     }
   },
@@ -11,7 +11,7 @@
     "Type": "Armor",
     "Payload": {
       "UniqueID": "plastic-armor",
-      "ResourceID": "plastic",
+      "ResourceID": "hydrocarbons",
       "Density": "1175"
     }
   },

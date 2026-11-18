@@ -2177,8 +2177,8 @@ namespace Pulsar4X.Tests
             AttachThrust(ship);
 
             var data = faction.GetDataBlob<FactionInfoDB>().Data;
-            data.Unlock("methalox");
-            var fuel = data.CargoGoods.GetAny("methalox");
+            data.Unlock("hydrocarbons");
+            var fuel = data.CargoGoods.GetAny("hydrocarbons");
             Assert.IsNotNull(fuel, "basemod should have methalox");
             ship.GetDataBlob<NewtonThrustAbilityDB>().FuelType = fuel.UniqueID;
             var storage = new CargoStorageDB(fuel.CargoTypeID, 1e12);

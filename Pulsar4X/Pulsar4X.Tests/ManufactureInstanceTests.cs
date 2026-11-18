@@ -34,6 +34,7 @@ public class ManufactureInstanceTests
         var store = new ModDataStore();
         modLoader.LoadModManifest("Data/basemod/modInfo.json", store);
         modLoader.LoadScenario("Data/scenarios/warp-tech-start/scenarioInfo.json", store);
+        TestMaterials.AddSteel(store);
         var game = new Game(new NewGameSettings { MaxSystems = 4, CreatePlayerFaction = false }, store);
         game.Settings.EnforceSingleThread = true;
         return game;

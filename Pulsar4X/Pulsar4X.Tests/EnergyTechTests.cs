@@ -265,7 +265,7 @@ public class EnergyTechTests
             .Where(p => p.UniqueID != null).ToList();
         Assert.That(earthPlants, Is.Not.Empty);
         foreach (var (id, eta) in earthPlants)
-            Assert.That(eta, Is.EqualTo(id.Contains("oxidiser") || id.Contains("methalox") ? 0.35 : 0.33), id);
+            Assert.That(eta, Is.EqualTo(id.Contains("oxidiser") || id.Contains("hydrocarbons") ? 0.35 : 0.33), id);
 
         // A faction that has opened none of them (they are all locked): level 0 all the same.
         var locked = new FactionDataStore(_store);
@@ -298,7 +298,6 @@ public class EnergyTechTests
         {
             Assert.That(data.EnergyPerPoint("component-construction"), Is.EqualTo(10), why);
             Assert.That(data.EnergyPerPoint("ship-assembly"), Is.EqualTo(5), why);
-            Assert.That(data.EnergyPerPoint("refining"), Is.EqualTo(7), why);
         }
     }
 

@@ -12,26 +12,23 @@
         { "Id": "default-design-warehouse", "Amount": 1 },
         { "Id": "default-design-fuel-farm-5000k", "Amount": 5 },
         { "Id": "default-design-passive-sensor", "Amount": 1 },
-        { "Id": "default-design-refinery-site", "Amount": 1 },
         { "Id": "default-design-factory-site", "Amount": 1 },
         { "Id": "default-design-shipyard", "Amount": 1 },
         { "Id": "default-design-spaceport", "Amount": 1 },
         { "Id": "default-design-research-lab", "Amount": 1 },
         { "Id": "default-design-naval-academy", "Amount": 1 },
         { "id": "default-design-city-hall", "amount": 1 },
-        { "Id": "default-design-local-construction-site", "Amount": 5},
+        { "Id": "default-design-local-construction-site", "Amount": 5 },
         { "Id": "default-design-launch-complex", "Amount": 1 },
         { "Id": "default-design-logistics-office-site", "Amount": 1 },
         { "Id": "default-design-fission-plant-75", "Amount": 1 },
         { "Id": "default-design-grid-battery-900t", "Amount": 1 }
       ],
       "Cargo": [
-        { "Id": "fissile-fuels", "Amount": 359 },
-        { "Id": "iron", "Amount": 500000 },
-        { "Id": "hydrocarbons", "Amount": 50000 },
-        { "Id": "stainless-steel", "Amount": 100000 },
-        { "Id": "chromium", "Amount": 50000 },
-        { "Id": "fissionables", "Amount": 50000 },
+        { "Id": "uranium", "Amount": 359 },
+        { "Id": "iron", "Amount": 589000 },
+        { "Id": "hydrocarbons", "Amount": 59050000 },
+        { "Id": "chromium", "Amount": 61000 },
         { "Id": "copper", "Amount": 50000 },
         { "Id": "aluminium", "Amount": 50000 },
         { "Id": "lithium", "Amount": 50000 },
@@ -42,9 +39,7 @@
         { "Id": "nickel", "Amount": 5000 },
         { "Id": "default-design-merlin", "Amount": 5, "Type": "byCount" },
         { "Id": "default-design-ship-construction", "Amount": 1, "Type": "byCount" },
-        { "Id": "rp-1", "Amount": 50000000, "Type": "byCount" },
-        { "Id": "methalox", "Amount": 9000000, "Type": "byCount" },
-        { "Id": "hydrolox", "Amount": 9000000, "Type": "byCount" }
+        { "Id": "hydrogen", "Amount": 9000000, "Type": "byCount" }
       ],
       "StartingItems": [
         "tech-modern-technology",
@@ -72,14 +67,12 @@
         "conventional-engine",
         "scntr-engine",
         "alcubierre-warp-drive",
-        "refining",
         "component-construction",
         "installation-construction",
         "ship-assembly",
         "mine",
         "automine",
         "research-lab",
-        "refinery",
         "factory",
         "shipyard",
         "general-cargo-hold",
@@ -89,21 +82,15 @@
         "fuel-cargo-hold",
         "stainless-steel-fuel-tank",
         "infrastructure",
-        "stainless-steel",
-        "rp-1",
-        "methalox",
-        "hydrolox",
-        "ntp",
-        "plastic",
-        "fissile-fuels",
         "hydrocarbons",
+        "hydrogen",
+        "uranium",
         "iron",
         "aluminium",
         "copper",
         "titanium",
         "lithium",
         "chromium",
-        "fissionables",
         "silicon",
         "graphite",
         "tungsten",
@@ -111,7 +98,6 @@
         "water",
         "rare-earth-elements",
         "regolith",
-        "space-crete",
         "laser-weapon",
         "admin-complex",
         "ship-command",
@@ -130,7 +116,6 @@
         "launch-complex",
         "logistics-office",
         "factory-site",
-        "refinery-site",
         "local-construction-site",
         "logistics-office-site",
         "warehouse-site",
@@ -174,7 +159,6 @@
         "default-design-reactor-5t",
         "default-design-reactor-6t",
         "default-design-reactor-7t",
-        "default-design-refinery",
         "default-design-rs-25",
         "default-design-shipyard",
         "default-design-shuttlebay",
@@ -195,7 +179,6 @@
         "default-design-logistics-office",
         "default-design-naval-academy",
         "default-design-factory-site",
-        "default-design-refinery-site",
         "default-design-local-construction-site",
         "default-design-logistics-office-site",
         "default-design-infrastructure-site",
@@ -224,7 +207,7 @@
               "DesignId": "default-ship-design-courier",
               "Name": "Planet Express Ship",
               "Cargo": [
-                { "Id": "hydrolox", "Amount": 20000000, "Type": "byVolume" },
+                { "Id": "hydrogen", "Amount": 20000000, "Type": "byVolume" },
                 { "Id": "default-design-auto-mine", "Amount": 1, "Type": "byCount" }
               ]
             }
@@ -237,14 +220,14 @@
               "DesignId": "default-ship-design-gunship",
               "Name": "Serial Peacemaker",
               "Cargo": [
-                { "Id": "ntp", "Amount": 20000000, "Type": "byVolume" }
+                { "Id": "hydrogen", "Amount": 20000000, "Type": "byVolume" }
               ]
             },
             {
               "DesignId": "default-ship-design-gunship",
               "Name": "Prevailing Stillness",
               "Cargo": [
-                { "Id": "ntp", "Amount": 20000000, "Type": "byVolume" }
+                { "Id": "hydrogen", "Amount": 20000000, "Type": "byVolume" }
               ],
               "Orbit": {
                 "SemiMajorAxis_km": 12000,
@@ -264,21 +247,17 @@
               "DesignId": "default-ship-design-surveyor",
               "Name": "Surveyor I",
               "Cargo": [
-                { "Id": "methalox", "Amount": 20000000, "Type": "byVolume" }
+                { "Id": "hydrocarbons", "Amount": 20000000, "Type": "byVolume" }
               ]
             },
             {
               "DesignId": "default-ship-design-tanker",
               "Name": "Tanker I",
               "Cargo": [
-                { "Id": "methalox", "Amount": 20000000, "Type": "byVolume" }
+                { "Id": "hydrocarbons", "Amount": 20000000, "Type": "byVolume" }
               ]
             },
-            {
-              "DesignId": "default-ship-design-sensorsat",
-              "Name": "SensorSat I",
-              "NoCaptain": true
-            }
+            { "DesignId": "default-ship-design-sensorsat", "Name": "SensorSat I", "NoCaptain": true }
           ]
         },
         {
@@ -288,7 +267,7 @@
               "DesignId": "default-ship-design-miner",
               "Name": "Prospector I",
               "Cargo": [
-                { "Id": "methalox", "Amount": 20000000, "Type": "byVolume" }
+                { "Id": "hydrocarbons", "Amount": 20000000, "Type": "byVolume" }
               ]
             }
           ]
@@ -320,25 +299,26 @@
         { "Id": "default-design-grid-battery-1000t", "Amount": 3 }
       ],
       "Cargo": [
-        { "Id": "fissile-fuels", "Amount": 956 },
+        { "Id": "uranium", "Amount": 956 },
         { "Id": "iron", "Amount": 80000 },
         { "Id": "titanium", "Amount": 20000 },
         { "Id": "silicon", "Amount": 10000 },
-        { "Id": "methalox", "Amount": 2000, "Type": "byCount" }
+        { "Id": "hydrocarbons", "Amount": 2000, "Type": "byCount" }
       ],
       "StartingItems": [
         "grid-battery",
         "iron",
         "titanium",
         "silicon",
-        "methalox",
+        "hydrocarbons",
+        "hydrogen",
         "infrastructure",
         "warehouse-facility",
         "spaceport",
         "fuel-storage",
         "passive-sensor",
         "fission-plant",
-        "fissile-fuels"
+        "uranium"
       ],
       "ComponentDesigns": [
         "default-design-grid-battery-1000t",
@@ -373,10 +353,10 @@
         { "Id": "default-design-fuel-tank-3000", "Amount": 1 }
       ],
       "Cargo": [
-        { "Id": "fissile-fuels", "Amount": 10 },
+        { "Id": "uranium", "Amount": 10 },
         { "Id": "iron", "Amount": 20000 },
         { "Id": "water", "Amount": 10000 },
-        { "Id": "methalox", "Amount": 500, "Type": "byCount" }
+        { "Id": "hydrocarbons", "Amount": 500, "Type": "byCount" }
       ],
       "StartingItems": [
         "tech-infra-gravity-min-extension"
@@ -403,7 +383,6 @@
       "Installations": [
         { "Id": "default-design-warehouse-prefab", "Amount": 2 },
         { "Id": "default-design-logistics-office-trade", "Amount": 2 },
-        { "Id": "default-design-refinery", "Amount": 5 },
         { "Id": "default-design-fuel-tank-3000", "Amount": 2 },
         { "Id": "default-design-city-hall", "Amount": 1 },
         { "Id": "default-design-planetary-spaceport-crate", "Amount": 1 },
@@ -412,30 +391,29 @@
         { "Id": "default-design-grid-battery-50t", "Amount": 1 }
       ],
       "Cargo": [
-        { "Id": "fissile-fuels", "Amount": 15 },
-        { "Id": "methalox", "Amount": 4000, "Type": "byVolume" },
+        { "Id": "uranium", "Amount": 15 },
+        { "Id": "hydrocarbons", "Amount": 4000, "Type": "byVolume" },
         { "Id": "iron", "Amount": 2000 },
         { "Id": "water", "Amount": 1000 }
       ],
       "StartingItems": [
         "grid-battery",
-        "methalox",
+        "hydrocarbons",
+        "hydrogen",
         "iron",
         "water",
         "warehouse-facility",
         "logistics-office",
-        "refinery",
         "stainless-steel-fuel-tank",
         "admin-complex",
         "spaceport",
         "fission-plant",
-        "fissile-fuels"
+        "uranium"
       ],
       "ComponentDesigns": [
         "default-design-grid-battery-50t",
         "default-design-warehouse-prefab",
         "default-design-logistics-office-trade",
-        "default-design-refinery",
         "default-design-fuel-tank-3000",
         "default-design-city-hall",
         "default-design-planetary-spaceport-crate",

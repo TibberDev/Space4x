@@ -203,8 +203,11 @@ public class LotOfferAction : EntityAction
             return carried;
 
         var library = info.Data.CargoGoods;
-        foreach (var store in cargo.TypeStores.Values)
+        foreach (var (storeId, store) in cargo.TypeStores)
         {
+            // Minerals in the fuel tanks are the ship's own fuel (Hydrocarbons, Hydrogen, Uranium), not ore.
+            if (storeId == "fuel-storage")
+                continue;
             foreach (var (id, units) in store.CurrentStoreInUnits)
             {
                 if (units <= 0 || !library.GetMinerals().TryGetValue(id, out var mineral) || mineral == null)

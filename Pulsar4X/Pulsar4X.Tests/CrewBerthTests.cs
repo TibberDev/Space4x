@@ -107,7 +107,7 @@ public class CrewBerthTests
     {
         var bridge = Design("ship-command", ("Command Span", 0), ("Console Space", 5));
         var quarters = Design("crew-quarters", ("Berths", 10));
-        Data.Unlock("plastic");
+        Data.Unlock("hydrocarbons");
         Data.Unlock("plastic-armor");
         var design = new ShipDesign(Info, "Berthed", new List<(ComponentDesign, int)> { (bridge, 1), (quarters, 2) },
             (Data.Armor["plastic-armor"], 0f));

@@ -9,6 +9,8 @@
     <SolidColorBrush x:Key="PulsarAccent" Color="#58A6FF" />
     <SolidColorBrush x:Key="PulsarMuted" Color="#8B949E" />
     <SolidColorBrush x:Key="PulsarError" Color="#F85149" />
+    <SolidColorBrush x:Key="PulsarWarning" Color="#D29922" />
+    <SolidColorBrush x:Key="PulsarSuccess" Color="#3FB950" />
   </Styles.Resources>
 
   <Style Selector="Window">
@@ -54,5 +56,67 @@
     <Setter Property="CornerRadius" Value="4" />
     <Setter Property="Padding" Value="10,5" />
     <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <!-- Cards and simple tables used across the management screens -->
+  <Style Selector="Border.card">
+    <Setter Property="Background" Value="{StaticResource PulsarPanel}" />
+    <Setter Property="BorderBrush" Value="{StaticResource PulsarBorder}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="14,10" />
+  </Style>
+
+  <Style Selector="TextBlock.cardtitle">
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Grid.tablehead">
+    <Setter Property="Margin" Value="0,4,0,2" />
+  </Style>
+  <Style Selector="Grid.tablehead > TextBlock">
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="Foreground" Value="{StaticResource PulsarMuted}" />
+  </Style>
+
+  <Style Selector=":is(Panel).tablerow">
+    <Setter Property="Margin" Value="0,3" />
+  </Style>
+  <Style Selector="Grid.tablerow > TextBlock">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+
+  <Style Selector="TextBlock.warning">
+    <Setter Property="Foreground" Value="{StaticResource PulsarWarning}" />
+  </Style>
+  <Style Selector="TextBlock.error">
+    <Setter Property="Foreground" Value="{StaticResource PulsarError}" />
+  </Style>
+  <Style Selector="TextBlock.success">
+    <Setter Property="Foreground" Value="{StaticResource PulsarSuccess}" />
+  </Style>
+
+  <Style Selector="Button.icon">
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Width" Value="26" />
+    <Setter Property="Height" Value="26" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Button.danger:pointerover /template/ ContentPresenter">
+    <Setter Property="Foreground" Value="{StaticResource PulsarError}" />
+  </Style>
+  <Style Selector="Button.small">
+    <Setter Property="Padding" Value="10,3" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
+  <Style Selector="ListBox.compact ListBoxItem">
+    <Setter Property="Padding" Value="8,4" />
   </Style>
 </Styles>

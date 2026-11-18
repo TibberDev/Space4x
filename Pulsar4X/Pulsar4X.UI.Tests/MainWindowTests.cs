@@ -7,6 +7,7 @@ using Avalonia.VisualTree;
 using NUnit.Framework;
 using Pulsar4X.UI.Core;
 using Pulsar4X.UI.Core.ViewModels;
+using Pulsar4X.UI.Core.Colonies;
 using Pulsar4X.UI.Desktop.Views;
 
 namespace Pulsar4X.UI.Tests;
@@ -177,6 +178,47 @@ public class MainWindowTests
         double before = vm.Map.Camera.MetresPerPixel;
         window.MouseWheel(start, new Avalonia.Vector(0, 2));
         Assert.That(vm.Map.Camera.MetresPerPixel, Is.LessThan(before));
+        window.Close();
+    }
+
+    [AvaloniaTest]
+    public async Task Colony_screen_renders_every_section()
+    {
+        var (window, vm) = await OpenRunningGame();
+        window.Height = 900;
+        vm.SelectedTab = MainWindowViewModel.ColoniesTab;
+        vm.Tick();
+        Pump();
+
+        var colonies = vm.Colonies;
+        Assert.That(Find<ListBox>(window, "ColonyList").ItemCount, Is.EqualTo(colonies.Colonies.Count).And.GreaterThan(0));
+        Assert.That(Find<TextBlock>(window, "ColonyTitle").Text, Is.EqualTo(colonies.Title));
+        Assert.That(Find<ItemsControl>(window, "InstallationsList").ItemCount, Is.GreaterThan(0));
+        Assert.That(Find<Border>(window, "SelectionPanel").IsEffectivelyVisible, Is.False);
+        Assert.That(window.GetVisualDescendants().OfType<ListBox>().Any(l => l.Name == "SystemList" && l.IsEffectivelyVisible),
+            Is.False, "the known-systems list is hidden on the colony screen");
+        Capture(window, "07-colony-summary");
+
+        colonies.SelectedSection = 1;
+        var production = colonies.Production;
+        production.SelectedLine = production.LineOptions.First(l => l.Name == "Factory");
+        production.SelectedOption = production.Options.First(o => o.Name.Contains("Cargo")) ;
+        production.Quantity = 4;
+        Pump();
+        Assert.That(Find<ItemsControl>(window, "ProductionLines").ItemCount, Is.EqualTo(production.Lines.Count));
+        Assert.That(Find<ItemsControl>(window, "CostList").ItemCount, Is.EqualTo(production.Costs.Count).And.GreaterThan(0));
+        Assert.That(Find<Button>(window, "QueueButton").IsEffectivelyEnabled, Is.True);
+        Capture(window, "08-colony-production");
+
+        colonies.SelectedSection = 2;
+        Pump();
+        Assert.That(Find<ItemsControl>(window, "SiteList").ItemCount, Is.GreaterThan(0));
+        Capture(window, "09-colony-construction");
+
+        colonies.SelectedSection = 3;
+        Pump();
+        Assert.That(Find<ItemsControl>(window, "MineralList").ItemCount, Is.GreaterThan(0));
+        Capture(window, "10-colony-mining");
         window.Close();
     }
 

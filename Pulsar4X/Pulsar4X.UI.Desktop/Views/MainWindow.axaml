@@ -6,6 +6,7 @@
         xmlns:api="using:Pulsar4X.Api"
         xmlns:map="using:Pulsar4X.UI.Core.Map"
         xmlns:controls="using:Pulsar4X.UI.Desktop.Controls"
+        xmlns:views="using:Pulsar4X.UI.Desktop.Views"
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="800"
         x:Class="Pulsar4X.UI.Desktop.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -65,8 +66,9 @@
       </StackPanel>
 
       <!-- Game screen: known systems on the left, bodies of the selected system on the right -->
-      <Grid IsVisible="{Binding HasGame}" ColumnDefinitions="260,4,*">
-        <Border Grid.Column="0" Classes="panel" BorderThickness="0,0,1,0">
+      <Grid IsVisible="{Binding HasGame}" ColumnDefinitions="Auto,Auto,*">
+        <!-- The system list drives the map and body table; the colony screen has its own list. -->
+        <Border Grid.Column="0" Classes="panel" BorderThickness="0,0,1,0" Width="260" IsVisible="{Binding ShowSystemList}">
           <DockPanel>
             <TextBlock DockPanel.Dock="Top" Classes="heading" Text="KNOWN SYSTEMS" />
             <ListBox Name="SystemList" ItemsSource="{Binding Systems}" SelectedItem="{Binding SelectedSystem}" Background="Transparent">
@@ -79,7 +81,7 @@
           </DockPanel>
         </Border>
 
-        <GridSplitter Grid.Column="1" Background="{StaticResource PulsarBorder}" ResizeDirection="Columns" />
+        <GridSplitter Grid.Column="1" Width="4" Background="{StaticResource PulsarBorder}" ResizeDirection="Columns" IsVisible="{Binding ShowSystemList}" />
 
         <Grid Grid.Column="2" ColumnDefinitions="*,Auto">
           <!-- Centre: system map and body table, sharing one selection -->
@@ -137,11 +139,15 @@
                 </DataGrid>
               </DockPanel>
             </TabItem>
+
+            <TabItem Header="Colonies" Name="ColoniesTab" FontSize="14">
+              <views:ColoniesView Name="ColoniesView" DataContext="{Binding Colonies}" />
+            </TabItem>
           </TabControl>
 
           <!-- Right: facts about the selected body or ship -->
           <Border Grid.Column="1" Name="SelectionPanel" Classes="panel" BorderThickness="1,0,0,0" Width="300"
-                  IsVisible="{Binding HasSelection}">
+                  IsVisible="{Binding ShowSelectionPanel}">
             <DockPanel DataContext="{Binding Selection}" x:DataType="vm:SelectionInfo" Margin="16,12">
               <Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto">
                 <StackPanel Spacing="2">
@@ -151,8 +157,13 @@
                 <Button Grid.Column="1" Classes="map" VerticalAlignment="Top" ToolTip.Tip="Clear selection"
                         Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ClearSelectionCommand}">✕</Button>
               </Grid>
-              <Button DockPanel.Dock="Bottom" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,12,0,0"
-                      Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowOnMapCommand}">Show on map</Button>
+              <StackPanel DockPanel.Dock="Bottom" Spacing="8" Margin="0,12,0,0">
+                <Button Name="OpenColonyButton" Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectedBodyColonyId, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenColonyCommand}">Open colony</Button>
+                <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowOnMapCommand}">Show on map</Button>
+              </StackPanel>
               <ItemsControl ItemsSource="{Binding Rows}" Margin="0,16,0,0">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:InfoRow">

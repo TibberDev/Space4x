@@ -1,0 +1,389 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:col="using:Pulsar4X.UI.Core.Colonies"
+             x:Class="Pulsar4X.UI.Desktop.Views.ColoniesView"
+             xmlns:conv="using:Pulsar4X.UI.Desktop.Converters"
+             x:DataType="col:ColoniesViewModel">
+
+  <UserControl.Resources>
+    <DataTemplate x:Key="StatRowTemplate" x:DataType="col:StatRow">
+      <Grid ColumnDefinitions="130,*" Margin="0,2">
+        <TextBlock Text="{Binding Label}" Classes="muted" />
+        <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" Classes.warning="{Binding IsWarning}" />
+      </Grid>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <Grid ColumnDefinitions="240,*">
+    <!-- Colony list -->
+    <Border Classes="panel" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Classes="heading" Text="YOUR COLONIES" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="12,0" TextWrapping="Wrap"
+                   IsVisible="{Binding HasNoColonies}" Text="You have no colonies yet." />
+        <ListBox Name="ColonyList" ItemsSource="{Binding Colonies}" SelectedItem="{Binding SelectedColony}" Background="Transparent">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="col:ColonyListItem">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,2">
+                <StackPanel>
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                  <TextBlock Text="{Binding LocationText}" Classes="muted" FontSize="12" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding PopulationText}" Classes="muted" FontSize="12" VerticalAlignment="Top" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Selected colony -->
+    <DockPanel Grid.Column="1" IsVisible="{Binding HasColony}">
+      <StackPanel DockPanel.Dock="Top" Margin="20,14,20,4">
+        <TextBlock Name="ColonyTitle" Text="{Binding Title}" FontSize="22" FontWeight="SemiBold" />
+        <TextBlock Text="{Binding Subtitle}" Classes="muted" />
+      </StackPanel>
+
+      <TabControl Name="ColonyTabs" SelectedIndex="{Binding SelectedSection}" Margin="8,0,0,0">
+
+        <!-- ============ Summary ============ -->
+        <TabItem Header="Summary" Name="SummaryTab">
+          <ScrollViewer DataContext="{Binding Summary}" x:DataType="col:ColonySummaryViewModel">
+            <StackPanel Margin="8,4,16,16" Spacing="16">
+              <WrapPanel ItemSpacing="12" LineSpacing="12">
+                <Border Classes="card" Width="320">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="cardtitle" Text="People" />
+                    <ItemsControl ItemsSource="{Binding People}" ItemTemplate="{StaticResource StatRowTemplate}" />
+                  </StackPanel>
+                </Border>
+                <Border Classes="card" Width="320" IsVisible="{Binding HasInfrastructure}">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="cardtitle" Text="Infrastructure" />
+                    <ProgressBar Value="{Binding InfrastructurePercent}" Maximum="100" Height="6" MinHeight="6" />
+                    <ItemsControl ItemsSource="{Binding Infrastructure}" ItemTemplate="{StaticResource StatRowTemplate}" />
+                  </StackPanel>
+                </Border>
+                <Border Classes="card" Width="320" IsVisible="{Binding HasPower}">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="cardtitle" Text="Power" />
+                    <ItemsControl ItemsSource="{Binding Power}" ItemTemplate="{StaticResource StatRowTemplate}" />
+                  </StackPanel>
+                </Border>
+                <Border Classes="card" Width="320">
+                  <StackPanel Spacing="6">
+                    <TextBlock Classes="cardtitle" Text="Industry" />
+                    <ItemsControl ItemsSource="{Binding Industry}" ItemTemplate="{StaticResource StatRowTemplate}" />
+                  </StackPanel>
+                </Border>
+              </WrapPanel>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="Installations" />
+                  <Grid ColumnDefinitions="2*,2*,90" Classes="tablehead">
+                    <TextBlock Text="Name" />
+                    <TextBlock Grid.Column="1" Text="Type" />
+                    <TextBlock Grid.Column="2" Text="Working" TextAlignment="Right" />
+                  </Grid>
+                  <ItemsControl Name="InstallationsList" ItemsSource="{Binding Installations}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:InstallationRow">
+                        <Grid ColumnDefinitions="2*,2*,90" Classes="tablerow">
+                          <TextBlock Text="{Binding Name}" />
+                          <TextBlock Grid.Column="1" Text="{Binding Type}" Classes="muted" />
+                          <TextBlock Grid.Column="2" Text="{Binding OperationalText}" TextAlignment="Right"
+                                     Classes.warning="{Binding HasInactive}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <ItemsControl Name="StoresList" ItemsSource="{Binding Stores}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="16" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="col:StoreGroupViewModel">
+                    <Border Classes="card">
+                      <StackPanel Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Classes="cardtitle" Text="{Binding TypeName, StringFormat='Stockpile: {0}'}" />
+                          <TextBlock Grid.Column="1" Classes="muted" FontSize="12" Text="{Binding CapacityText}" />
+                        </Grid>
+                        <ProgressBar Value="{Binding FillPercent}" Maximum="100" Height="4" MinHeight="4" />
+                        <Grid ColumnDefinitions="2*,*,*,*,*" Classes="tablehead">
+                          <TextBlock Text="Item" />
+                          <TextBlock Grid.Column="1" Text="Kind" />
+                          <TextBlock Grid.Column="2" Text="Units" TextAlignment="Right" />
+                          <TextBlock Grid.Column="3" Text="Mass" TextAlignment="Right" />
+                          <TextBlock Grid.Column="4" Text="Volume" TextAlignment="Right" />
+                        </Grid>
+                        <ItemsControl ItemsSource="{Binding Items}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="col:StockRow">
+                              <Grid ColumnDefinitions="2*,*,*,*,*" Classes="tablerow">
+                                <TextBlock Text="{Binding Name}" />
+                                <TextBlock Grid.Column="1" Text="{Binding Kind}" Classes="muted" />
+                                <TextBlock Grid.Column="2" Text="{Binding UnitsText}" TextAlignment="Right" />
+                                <TextBlock Grid.Column="3" Text="{Binding MassText}" TextAlignment="Right" Classes="muted" />
+                                <TextBlock Grid.Column="4" Text="{Binding VolumeText}" TextAlignment="Right" Classes="muted" />
+                              </Grid>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- ============ Production ============ -->
+        <TabItem Header="Production" Name="ProductionTab">
+          <Grid DataContext="{Binding Production}" x:DataType="col:ColonyProductionViewModel" ColumnDefinitions="*,360">
+            <ScrollViewer>
+              <StackPanel Margin="8,4,16,16" Spacing="12">
+                <TextBlock Classes="muted" IsVisible="{Binding !HasLines}" Text="This colony has no production facilities." />
+                <ItemsControl Name="ProductionLines" ItemsSource="{Binding Lines}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Spacing="12" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="col:ProductionLineViewModel">
+                      <Border Classes="card">
+                        <StackPanel Spacing="6">
+                          <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Classes="cardtitle" Text="{Binding Name}" />
+                            <TextBlock Classes="muted" FontSize="12" Text="{Binding Subtitle}" VerticalAlignment="Center" />
+                          </StackPanel>
+                          <TextBlock Classes="muted" Text="No jobs queued." IsVisible="{Binding IsIdle}" />
+                          <ItemsControl ItemsSource="{Binding Jobs}">
+                            <ItemsControl.ItemTemplate>
+                              <DataTemplate x:DataType="col:IndustryJobRow">
+                                <StackPanel Classes="tablerow" Spacing="2">
+                                  <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="2">
+                                      <Button Classes="icon" Content="↑" ToolTip.Tip="Move up" IsEnabled="{Binding CanMoveUp}"
+                                              Command="{Binding $parent[ItemsControl].((col:ProductionLineViewModel)DataContext).MoveUpCommand}" CommandParameter="{Binding}" />
+                                      <Button Classes="icon" Content="↓" ToolTip.Tip="Move down" IsEnabled="{Binding CanMoveDown}"
+                                              Command="{Binding $parent[ItemsControl].((col:ProductionLineViewModel)DataContext).MoveDownCommand}" CommandParameter="{Binding}" />
+                                      <Button Classes="icon danger" Content="✕" ToolTip.Tip="Cancel job"
+                                              Command="{Binding $parent[ItemsControl].((col:ProductionLineViewModel)DataContext).CancelCommand}" CommandParameter="{Binding}" />
+                                    </StackPanel>
+                                  </Grid>
+                                  <Grid ColumnDefinitions="70,*,44,Auto">
+                                    <TextBlock Text="{Binding CountText}" Classes="muted" ToolTip.Tip="Done / ordered (↻ repeats)" VerticalAlignment="Center" />
+                                    <ProgressBar Grid.Column="1" Value="{Binding Percent}" Maximum="100" Height="6" MinHeight="6" MinWidth="0" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Percent, StringFormat='{}{0:0}%'}" TextAlignment="Right" Classes="muted" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{Binding PointsLeftText, StringFormat='{}{0} left'}" Classes="muted" Margin="12,0,0,0" VerticalAlignment="Center" />
+                                  </Grid>
+                                  <TextBlock Text="{Binding Status}" Classes="muted" FontSize="12" />
+                                  <TextBlock Text="{Binding Warning}" Classes="warning" FontSize="12" IsVisible="{Binding HasWarning}" TextWrapping="Wrap" />
+                                </StackPanel>
+                              </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                          </ItemsControl>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ScrollViewer>
+
+            <!-- New job form -->
+            <Border Grid.Column="1" Classes="panel" BorderThickness="1,0,0,0">
+              <ScrollViewer>
+                <StackPanel Margin="16,8,16,16" Spacing="8">
+                  <TextBlock Classes="cardtitle" Text="New job" />
+                  <ComboBox Name="LineBox" ItemsSource="{Binding LineOptions}" SelectedItem="{Binding SelectedLine}" HorizontalAlignment="Stretch" />
+                  <TextBox Name="SearchBox" Text="{Binding Search}" Watermark="Search by name or type" />
+                  <ListBox Name="OptionList" ItemsSource="{Binding Options}" SelectedItem="{Binding SelectedOption}" Height="240"
+                           Classes="compact">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="col:ConstructibleOption">
+                        <Grid ColumnDefinitions="*,Auto" Opacity="{Binding IsAvailable, Converter={x:Static conv:Converters.AvailableOpacity}}">
+                          <StackPanel>
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text="{Binding Category}" Classes="muted" FontSize="11" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="1" Text="{Binding PointsText}" Classes="muted" FontSize="11" VerticalAlignment="Center" />
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+
+                  <StackPanel Spacing="6" IsVisible="{Binding SelectedOption, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <TextBlock Name="JobTitle" Text="{Binding SelectedOption.Name}" FontSize="16" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding DetailText}" Classes="muted" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding TotalPointsText}" Classes="muted" />
+
+                    <Grid ColumnDefinitions="*,80,80" Classes="tablehead" Margin="0,6,0,0">
+                      <TextBlock Text="Needs" />
+                      <TextBlock Grid.Column="1" Text="Total" TextAlignment="Right" />
+                      <TextBlock Grid.Column="2" Text="In stock" TextAlignment="Right" />
+                    </Grid>
+                    <ItemsControl Name="CostList" ItemsSource="{Binding Costs}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="col:CostRow">
+                          <Grid ColumnDefinitions="*,80,80" Classes="tablerow">
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Grid.Column="1" Text="{Binding TotalText}" TextAlignment="Right" />
+                            <TextBlock Grid.Column="2" Text="{Binding AvailableText}" TextAlignment="Right" Classes.error="{Binding IsShort}" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Classes="warning" FontSize="12" TextWrapping="Wrap" IsVisible="{Binding HasShortfall}"
+                               Text="Not enough in stock: the job will wait until the materials arrive." />
+
+                    <Grid ColumnDefinitions="Auto,*" Margin="0,6,0,0">
+                      <TextBlock Text="Quantity" VerticalAlignment="Center" Margin="0,0,12,0" />
+                      <NumericUpDown Grid.Column="1" Name="QuantityBox" Value="{Binding QuantityInput}" Minimum="1" Maximum="100000" Increment="1" FormatString="0" />
+                    </Grid>
+                    <CheckBox Content="Repeat when finished" IsChecked="{Binding Repeat}" />
+                    <CheckBox Name="AutoInstallBox" Content="Install when built" IsChecked="{Binding AutoInstall}" IsEnabled="{Binding CanAutoInstall}"
+                              ToolTip.Tip="{Binding AutoInstallReason}" ToolTip.ShowOnDisabled="True" />
+                    <TextBlock Text="{Binding BlockReason}" Classes="error" TextWrapping="Wrap"
+                               IsVisible="{Binding BlockReason, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                    <Button Name="QueueButton" Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Command="{Binding QueueJobCommand}" Content="Queue job" />
+                  </StackPanel>
+
+                  <TextBlock Name="ProductionResult" Text="{Binding Result.Message}" TextWrapping="Wrap" IsVisible="{Binding Result.HasMessage}"
+                             Classes.error="{Binding Result.IsError}" Classes.success="{Binding !Result.IsError}" />
+                </StackPanel>
+              </ScrollViewer>
+            </Border>
+          </Grid>
+        </TabItem>
+
+        <!-- ============ Construction ============ -->
+        <TabItem Header="Construction" Name="ConstructionTab">
+          <ScrollViewer DataContext="{Binding Construction}" x:DataType="col:ColonyConstructionViewModel">
+            <StackPanel Margin="8,4,16,16" Spacing="16">
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Construction rate" Classes="muted" />
+                <TextBlock Text="{Binding RateText}" FontWeight="SemiBold" />
+              </StackPanel>
+              <TextBlock Name="ConstructionResult" Text="{Binding Result.Message}" TextWrapping="Wrap" IsVisible="{Binding Result.HasMessage}"
+                         Classes.error="{Binding Result.IsError}" Classes.success="{Binding !Result.IsError}" />
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="Build queue" />
+                  <TextBlock Classes="muted" Text="Nothing queued. Mount a stored part or assemble a building below." IsVisible="{Binding !HasQueue}" />
+                  <ItemsControl Name="ConstructionQueue" ItemsSource="{Binding Queue}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:ConstructionJobRow">
+                        <Grid ColumnDefinitions="2*,90,150,170,Auto" Classes="tablerow">
+                          <StackPanel>
+                            <TextBlock Text="{Binding Name}" />
+                            <TextBlock Text="{Binding Target, StringFormat='on {0}'}" Classes="muted" FontSize="11"
+                                       IsVisible="{Binding Target, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                          </StackPanel>
+                          <TextBlock Grid.Column="1" Text="{Binding Kind}" Classes="muted" />
+                          <ProgressBar Grid.Column="2" Value="{Binding Percent}" Maximum="100" Height="6" MinHeight="6" MinWidth="0" Margin="0,0,8,0" VerticalAlignment="Center" />
+                          <TextBlock Grid.Column="3" Text="{Binding PointsText}" Classes="muted" TextAlignment="Right" Margin="0,0,8,0" />
+                          <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="2">
+                            <Button Classes="icon" Content="↑" ToolTip.Tip="Move up" IsEnabled="{Binding CanMoveUp}"
+                                    Command="{Binding $parent[ItemsControl].((col:ColonyConstructionViewModel)DataContext).MoveUpCommand}" CommandParameter="{Binding}" />
+                            <Button Classes="icon" Content="↓" ToolTip.Tip="Move down" IsEnabled="{Binding CanMoveDown}"
+                                    Command="{Binding $parent[ItemsControl].((col:ColonyConstructionViewModel)DataContext).MoveDownCommand}" CommandParameter="{Binding}" />
+                            <Button Classes="icon danger" Content="✕" ToolTip.Tip="Remove from queue"
+                                    Command="{Binding $parent[ItemsControl].((col:ColonyConstructionViewModel)DataContext).RemoveCommand}" CommandParameter="{Binding}" />
+                          </StackPanel>
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card" IsVisible="{Binding HasCrates}">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="Stored parts ready to mount" />
+                  <ItemsControl Name="CrateList" ItemsSource="{Binding Crates}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:CrateRow">
+                        <Grid ColumnDefinitions="2*,*,Auto" Classes="tablerow">
+                          <TextBlock Text="{Binding Name}" />
+                          <TextBlock Grid.Column="1" Text="{Binding CostText}" Classes="muted" />
+                          <Button Grid.Column="2" Content="Mount" Classes="small"
+                                  Command="{Binding $parent[ItemsControl].((col:ColonyConstructionViewModel)DataContext).MountCommand}" CommandParameter="{Binding}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="cardtitle" Text="Assemble on site" />
+                  <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                             Text="Buildings too big to ship, built here from the colony's own materials." />
+                  <ItemsControl Name="SiteList" ItemsSource="{Binding SiteDesigns}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:SiteDesignRow">
+                        <Grid ColumnDefinitions="2*,*,2*,Auto" Classes="tablerow">
+                          <TextBlock Text="{Binding Name}" />
+                          <TextBlock Grid.Column="1" Text="{Binding CostText}" Classes="muted" />
+                          <TextBlock Grid.Column="2" Text="{Binding Missing}" Classes="warning" FontSize="12" TextWrapping="Wrap" Margin="0,0,8,0" />
+                          <Button Grid.Column="3" Content="Assemble" Classes="small"
+                                  Command="{Binding $parent[ItemsControl].((col:ColonyConstructionViewModel)DataContext).AssembleCommand}" CommandParameter="{Binding}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+
+        <!-- ============ Mining ============ -->
+        <TabItem Header="Mining" Name="MiningTab">
+          <ScrollViewer>
+            <StackPanel Margin="8,4,16,16" Spacing="12">
+              <TextBlock Text="{Binding MinesText}" FontWeight="SemiBold" />
+              <Border Classes="card">
+                <StackPanel Spacing="6">
+                  <Grid ColumnDefinitions="2*,*,*,150,*" Classes="tablehead">
+                    <TextBlock Text="Mineral" />
+                    <TextBlock Grid.Column="1" Text="In stock" TextAlignment="Right" />
+                    <TextBlock Grid.Column="2" Text="In the ground" TextAlignment="Right" />
+                    <TextBlock Grid.Column="3" Text="Accessibility" Margin="16,0,0,0" />
+                    <TextBlock Grid.Column="4" Text="Output" TextAlignment="Right" />
+                  </Grid>
+                  <ItemsControl Name="MineralList" ItemsSource="{Binding Minerals}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="col:MineralRow">
+                        <Grid ColumnDefinitions="2*,*,*,150,*" Classes="tablerow">
+                          <TextBlock Text="{Binding Name}" />
+                          <TextBlock Grid.Column="1" Text="{Binding StockText}" TextAlignment="Right" />
+                          <TextBlock Grid.Column="2" Text="{Binding DepositText}" TextAlignment="Right" Classes="muted" />
+                          <Grid Grid.Column="3" ColumnDefinitions="*,40" Margin="16,0,0,0">
+                            <ProgressBar Value="{Binding AccessibilityPercent}" Maximum="100" Height="6" MinHeight="6" MinWidth="0" VerticalAlignment="Center" />
+                            <TextBlock Grid.Column="1" Text="{Binding AccessibilityText}" TextAlignment="Right" Classes="muted" />
+                          </Grid>
+                          <TextBlock Grid.Column="4" Text="{Binding AnnualText}" TextAlignment="Right" Classes="success" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </TabItem>
+      </TabControl>
+    </DockPanel>
+  </Grid>
+</UserControl>

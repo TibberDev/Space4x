@@ -1,0 +1,125 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ppl="using:Pulsar4X.UI.Core.People"
+             x:Class="Pulsar4X.UI.Desktop.Views.PeopleView"
+             x:DataType="ppl:PeopleViewModel">
+
+  <Grid ColumnDefinitions="280,*">
+    <!-- Roster -->
+    <Border Classes="panel" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Classes="heading" Text="PEOPLE" />
+        <ComboBox Name="PeopleFilter" DockPanel.Dock="Top" Margin="12,0,12,8" HorizontalAlignment="Stretch"
+                  ItemsSource="{Binding Filters}" SelectedItem="{Binding Filter}" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="12,0" TextWrapping="Wrap"
+                   IsVisible="{Binding HasNobody}" Text="Nobody here yet." />
+        <ListBox Name="PeopleList" ItemsSource="{Binding People}" SelectedItem="{Binding SelectedPerson}" Background="Transparent">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="ppl:PersonRow">
+              <StackPanel Margin="0,2">
+                <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                <TextBlock Classes="muted" FontSize="12">
+                  <Run Text="{Binding Role}" />
+                  <Run Text=" · " />
+                  <Run Text="{Binding Detail}" />
+                </TextBlock>
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Selected person -->
+    <ScrollViewer Grid.Column="1" IsVisible="{Binding HasPerson}">
+      <StackPanel Margin="20,14,20,16" Spacing="16">
+        <StackPanel>
+          <TextBlock Name="PersonName" Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding Subtitle}" Classes="muted" />
+          <TextBlock Margin="0,4,0,0">
+            <Run Text="Post: " Foreground="{StaticResource PulsarMuted}" />
+            <Run Text="{Binding AssignmentText}" />
+          </TextBlock>
+        </StackPanel>
+
+        <WrapPanel ItemSpacing="12" LineSpacing="12">
+          <!-- Traits: what they choose to do -->
+          <Border Classes="card" Width="420" IsVisible="{Binding HasTraits}">
+            <StackPanel Spacing="10">
+              <StackPanel>
+                <TextBlock Classes="cardtitle" Text="Traits" />
+                <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                           Text="What this person chooses to do when left to run things." />
+              </StackPanel>
+              <ItemsControl ItemsSource="{Binding Traits}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="ppl:TraitRow">
+                    <StackPanel Margin="0,0,0,10" Spacing="3">
+                      <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                        <TextBlock Grid.Column="1" Text="{Binding Level}" Classes="muted" Classes.notable="{Binding IsNotable}" />
+                      </Grid>
+                      <Grid Height="6">
+                        <ProgressBar Value="{Binding Percent}" Maximum="100" Height="6" MinHeight="6" />
+                        <Border Width="2" Height="10" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Background="{StaticResource PulsarMuted}" />
+                      </Grid>
+                      <TextBlock Text="{Binding Line}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+          </Border>
+
+          <StackPanel Spacing="12" Width="340">
+            <!-- Skills: how well they work -->
+            <Border Classes="card">
+              <StackPanel Spacing="10">
+                <StackPanel>
+                  <TextBlock Classes="cardtitle" Text="Skills" />
+                  <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                             Text="How well they do the work. Skills grow as they finish jobs." />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Skills}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="ppl:SkillRow">
+                      <StackPanel Margin="0,0,0,10" Spacing="3">
+                        <Grid ColumnDefinitions="*,Auto">
+                          <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                          <TextBlock Grid.Column="1" Text="{Binding Points}" Classes="muted" />
+                        </Grid>
+                        <ProgressBar Value="{Binding Percent}" Maximum="100" Height="6" MinHeight="6" />
+                        <TextBlock Text="{Binding Line}" Classes="muted" FontSize="12" TextWrapping="Wrap" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <!-- Posting: administrators only -->
+            <Border Classes="card" IsVisible="{Binding CanAdminister}">
+              <StackPanel Spacing="8">
+                <TextBlock Classes="cardtitle" Text="Colony post" />
+                <ComboBox Name="PostPicker" HorizontalAlignment="Stretch" ItemsSource="{Binding Posts}" SelectedItem="{Binding SelectedPost}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="ppl:PostOption">
+                      <TextBlock Text="{Binding Text}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <Button Name="AssignButton" Content="Make administrator" Command="{Binding AssignCommand}" />
+                  <Button Name="ReleaseButton" Content="Leave post" Command="{Binding ReleaseCommand}" />
+                </StackPanel>
+                <TextBlock Text="{Binding Sink.Message}" IsVisible="{Binding Sink.HasMessage}" TextWrapping="Wrap"
+                           Classes.error="{Binding Sink.IsError}" Classes.success="{Binding !Sink.IsError}" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+        </WrapPanel>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

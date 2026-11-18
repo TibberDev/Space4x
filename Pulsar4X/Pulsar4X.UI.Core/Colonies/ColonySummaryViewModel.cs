@@ -44,6 +44,7 @@ public sealed partial class ColonySummaryViewModel : ObservableObject
     public ObservableCollection<StoreGroupViewModel> Stores { get; } = new();
 
     [ObservableProperty] private bool _hasPower;
+    [ObservableProperty] private bool _hasAdministrativePost;
     [ObservableProperty] private bool _hasInfrastructure;
     [ObservableProperty] private double _infrastructurePercent;
 
@@ -51,6 +52,7 @@ public sealed partial class ColonySummaryViewModel : ObservableObject
     {
         var view = colony.GetView<ColonyView>();
         var people = new List<StatRow>();
+        HasAdministrativePost = view?.HasAdministrativePost == true;
         if (view != null)
         {
             people.Add(new("Population", Fmt.Int(view.Population)));

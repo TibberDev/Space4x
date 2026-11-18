@@ -58,7 +58,7 @@ Mines already fill the warehouse on their processor. Population already grows ag
 
 ## When a plan is worth writing
 
-1. Personality on the person. Add specialization. Replace Greed with Patience. Attach `AgentDB` to commanders.
+1. Personality on the person. Add specialization. Replace Greed with Patience. Attach `AgentDB` to commanders. **Built 2026-11-18:** every new commander rolls its traits from its own seed (`AgentDB.Roll`), trading weighs `2 - Patience`, a unit uses its captain's or administrator's personality, and the Avalonia client has a People screen that seats administrators. Patience and Specialization do not drive colony choices yet.
 2. Seat a starting civilian on Luna Concord so that personality is in the game on day one. Earth's chair stays empty until the player assigns someone. The commanders window has no assign button today.
 3. The bid pass. A seated administrator writes buy rows, then the market posts them. Choose the bid number first.
 4. Construction that spends cargo, then one installation plan.

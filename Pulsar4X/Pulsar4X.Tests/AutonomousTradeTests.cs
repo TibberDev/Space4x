@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using GameEngine.Engine.Orders;
 using NUnit.Framework;
+using Pulsar4X.DataStructures;
+using Pulsar4X.People;
 using Pulsar4X.Colonies;
 using Pulsar4X.Datablobs;
 using Pulsar4X.Engine;
@@ -108,6 +110,28 @@ public class AutonomousTradeTests
         Assert.That(unstaffed.Ship.GetDataBlob<GoalsDB>().ActiveGoal!.Type, Is.EqualTo(GoalType.Freighter));
     }
 
+    [Test]
+    public void TheCaptainsPatience_SetsTheShipsChoice()
+    {
+        // Step 2 of the vertical slice: a ship with no personality of its own follows its captain's.
+        var captained = Scene.Build(withPair: true);
+        Assert.That(captained.Ship.HasDataBlob<AgentDB>(), Is.False);
+        var captain = CommanderFactory.Create(captained.Ship.Manager!, captained.Ship.FactionOwnerID,
+            new CommanderDB("Captain Ito", 6, CommanderTypes.Navy));
+        captain.GetDataBlob<AgentDB>().Patience = 0f;
+        captained.Ship.GetDataBlob<ShipInfoDB>().CommanderID = captain.Id;
+        AgentProcessor.RunAgentNow(captained.Ship);
+        Assert.That(captained.Ship.GetDataBlob<GoalsDB>().ActiveGoal!.Type, Is.EqualTo(GoalType.Trade), "an impatient captain trades");
+
+        var patient = Scene.Build(withPair: true);
+        var calm = CommanderFactory.Create(patient.Ship.Manager!, patient.Ship.FactionOwnerID,
+            new CommanderDB("Captain Ade", 6, CommanderTypes.Navy));
+        calm.GetDataBlob<AgentDB>().Patience = 1.5f;
+        patient.Ship.GetDataBlob<ShipInfoDB>().CommanderID = calm.Id;
+        AgentProcessor.RunAgentNow(patient.Ship);
+        Assert.That(patient.Ship.GetDataBlob<GoalsDB>().ActiveGoal!.Type, Is.EqualTo(GoalType.Freighter), "a patient one hauls");
+    }
+
     sealed class Scene
     {
         public Entity Ship = null!;
@@ -152,7 +176,7 @@ public class AutonomousTradeTests
                 new LogiBaseDB { Capacity = 5 },
             };
             if (greed != null)
-                shipBlobs.Add(new AgentDB { Greed = greed.Value });
+                shipBlobs.Add(new AgentDB { Patience = 2f - greed.Value }); // Patience replaced Greed: trade drive is 2 - Patience
 
             var ship = Entity.Create(faction.Id);
             system.AddEntity(ship, shipBlobs);

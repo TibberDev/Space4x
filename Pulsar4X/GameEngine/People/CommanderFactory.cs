@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using GameEngine.Engine.Orders;
 using Pulsar4X.Datablobs;
 using Pulsar4X.DataStructures;
 using Pulsar4X.Engine;
@@ -24,12 +25,14 @@ namespace Pulsar4X.People
             if (commanderDB.RankedOn == default)
                 commanderDB.RankedOn = commanderDB.CommissionedOn;
 
+            var entity = Entity.Create();
             var blobs = new List<BaseDataBlob>();
             var nameDB = new NameDB(commanderDB.ToString(), factionID, commanderDB.ToString());
             blobs.Add(nameDB);
             blobs.Add(commanderDB);
             blobs.Add(new BonusesDB());
-            var entity = Entity.Create();
+            // Personality, from a seed of its own so the game's shared random stream is not drawn on.
+            blobs.Add(AgentDB.Roll(unchecked(manager.Game.Settings.MasterSeed * 31 + entity.Id), commanderDB.Type));
             entity.FactionOwnerID = factionID;
             manager.AddEntity(entity, blobs);
 

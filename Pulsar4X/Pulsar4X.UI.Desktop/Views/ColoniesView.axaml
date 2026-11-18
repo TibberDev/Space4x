@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:col="using:Pulsar4X.UI.Core.Colonies"
+             xmlns:vm="using:Pulsar4X.UI.Core.ViewModels"
              x:Class="Pulsar4X.UI.Desktop.Views.ColoniesView"
              xmlns:conv="using:Pulsar4X.UI.Desktop.Converters"
              x:DataType="col:ColoniesViewModel">
@@ -55,6 +56,9 @@
                   <StackPanel Spacing="6">
                     <TextBlock Classes="cardtitle" Text="People" />
                     <ItemsControl ItemsSource="{Binding People}" ItemTemplate="{StaticResource StatRowTemplate}" />
+                    <Button Name="ChooseAdministrator" Classes="small" Content="Choose administrator…" HorizontalAlignment="Left"
+                            IsVisible="{Binding HasAdministrativePost}"
+                            Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ChooseAdministratorCommand}" />
                   </StackPanel>
                 </Border>
                 <Border Classes="card" Width="320" IsVisible="{Binding HasInfrastructure}">

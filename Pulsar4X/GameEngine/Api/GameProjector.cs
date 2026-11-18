@@ -2395,11 +2395,34 @@ namespace Pulsar4X.Engine.Api
                 Bonuses = bonuses,
                 Skills = skills,
                 Domains = domains,
+                Traits = commander.TryGetDataBlob<AgentDB>(out var agent) ? Traits(agent, commanderDB.Type) : Array.Empty<CommanderTraitSnapshot>(),
                 Rank = commanderDB.Rank,
                 RankName = rankName,
                 RankedOn = commanderDB.RankedOn,
                 AssignmentName = assignment,
             };
+        }
+
+        private static List<CommanderTraitSnapshot> Traits(AgentDB agent, DataStructures.CommanderTypes type)
+        {
+            var traits = new List<CommanderTraitSnapshot>
+            {
+                Trait("Aggression", agent.Aggression, "Seeks battle, presses attacks and fires first.", "Fights when it has to.", "Avoids fights and waits to be fired on."),
+                Trait("Caution", agent.Caution, "Keeps wide fuel and damage margins and retreats early.", "Keeps sensible margins.", "Runs on fumes and fights to the last."),
+                Trait("Curiosity", agent.Curiosity, "Detours to anomalies, ruins and unexplored jump points.", "Looks around when there is time.", "Sticks to the task."),
+                Trait("Patience", agent.Patience, "Stockpiles and waits for the better deal.", "Trades when the price is fair.", "Sells the pile and takes the quick gain."),
+                Trait("Loyalty", agent.Loyalty, "Follows policy to the letter.", "Follows policy, mostly.", "Bends policy when they think they know better."),
+            };
+            if (type == DataStructures.CommanderTypes.Civilian)
+                traits.Add(Trait("Specialization", agent.Specialization, "Focuses the colony on one production chain.", "Keeps a few chains going.", "Spreads the colony's effort widely."));
+            return traits;
+        }
+
+        private static CommanderTraitSnapshot Trait(string name, float value, string high, string average, string low)
+        {
+            string level = value <= 0.7f ? "Very low" : value <= 0.9f ? "Low" : value < 1.1f ? "Average" : value < 1.3f ? "High" : "Very high";
+            string line = value <= 0.9f ? low : value < 1.1f ? average : high;
+            return new CommanderTraitSnapshot(name, value, level, line);
         }
 
         private static CommanderKind ToCommanderKind(DataStructures.CommanderTypes type) => type switch

@@ -8,6 +8,7 @@ using NUnit.Framework;
 using Pulsar4X.UI.Core;
 using Pulsar4X.UI.Core.ViewModels;
 using Pulsar4X.UI.Core.Colonies;
+using Pulsar4X.UI.Core.People;
 using Pulsar4X.UI.Desktop.Views;
 
 namespace Pulsar4X.UI.Tests;
@@ -219,6 +220,61 @@ public class MainWindowTests
         Pump();
         Assert.That(Find<ItemsControl>(window, "MineralList").ItemCount, Is.GreaterThan(0));
         Capture(window, "10-colony-mining");
+        window.Close();
+    }
+
+    [AvaloniaTest]
+    public async Task People_screen_shows_skills_and_traits_and_opens_from_a_colony()
+    {
+        var (window, vm) = await OpenRunningGame();
+        window.Height = 900;
+        vm.SelectedTab = MainWindowViewModel.ColoniesTab;
+        vm.Tick();
+        Pump();
+        var choose = Find<Button>(window, "ChooseAdministrator");
+        Assert.That(choose.IsEffectivelyVisible, Is.True, "Earth has an administrative post");
+
+        choose.Command!.Execute(null);
+        vm.Tick();
+        Pump();
+        Assert.That(vm.SelectedTab, Is.EqualTo(MainWindowViewModel.PeopleTab));
+        var people = vm.People;
+        foreach (var p in people.People)
+            TestContext.Out.WriteLine($"{p.Name} | {p.Role} | {p.Detail}");
+        Assert.That(people.Filter, Is.EqualTo(PeopleViewModel.Administrators));
+        Assert.That(people.SelectedPost?.ColonyId, Is.EqualTo(vm.Colonies.SelectedColony!.Id), "the colony's post is picked");
+        Assert.That(window.GetVisualDescendants().OfType<ListBox>().Any(l => l.Name == "SystemList" && l.IsEffectivelyVisible),
+            Is.False, "the known-systems list is hidden on the people screen");
+
+        people.Filter = PeopleViewModel.Everyone;
+        Pump();
+        Assert.That(Find<ListBox>(window, "PeopleList").ItemCount, Is.EqualTo(people.People.Count).And.GreaterThan(0));
+        people.SelectedPerson = people.People.First();
+        Pump();
+        Assert.That(Find<TextBlock>(window, "PersonName").Text, Is.EqualTo(people.SelectedPerson.Name));
+        Assert.That(people.Traits.Select(t => t.Name), Does.Contain("Aggression").And.Contain("Patience"));
+        Capture(window, "11-people");
+
+        // Seat the administrator on the colony that asked for one; the colony's summary names them.
+        var admin = people.People.First(p => p.CanAdminister);
+        people.SelectedPerson = admin;
+        people.SelectedPost = people.Posts.First(p => p.ColonyId == vm.Colonies.SelectedColony!.Id);
+        Pump();
+        Assert.That(Find<Button>(window, "AssignButton").IsEffectivelyEnabled, Is.True);
+        await people.AssignCommand.ExecuteAsync(null);
+        Assert.That(people.Sink.IsError, Is.False, people.Sink.Message);
+        for (int i = 0; i < 50 && people.AdministeredColonyId == null; i++)
+        {
+            vm.Tick();
+            Pump();
+            await Task.Delay(20);
+        }
+        Assert.That(people.AdministeredColonyId, Is.EqualTo(vm.Colonies.SelectedColony!.Id));
+        Assert.That(Find<Button>(window, "ReleaseButton").IsEffectivelyEnabled, Is.True);
+        vm.SelectedTab = MainWindowViewModel.ColoniesTab;
+        vm.Tick();
+        Pump();
+        Assert.That(vm.Colonies.Summary.People.Single(r => r.Label == "Administrator").Value, Is.EqualTo(admin.Name));
         window.Close();
     }
 

@@ -32,6 +32,31 @@ namespace Pulsar4X.Tests
         }
 
         [Test]
+        public void ProjectCommanders_carries_each_persons_traits()
+        {
+            var session = Connect();
+            var navy = MakeCommander(session.FactionId, CommanderTypes.Navy, rank: 6);
+            var civilian = MakeCommander(session.FactionId, CommanderTypes.Civilian);
+            navy.GetDataBlob<AgentDB>().Aggression = 1.4f;
+            civilian.GetDataBlob<AgentDB>().Patience = 0.6f;
+
+            var commanders = _projector.ProjectCommanders(session.FactionId)!;
+
+            var officer = commanders.Single(c => c.Id == navy.Id);
+            Assert.That(officer.Traits.Select(t => t.Name), Is.EqualTo(new[] { "Aggression", "Caution", "Curiosity", "Patience", "Loyalty" }));
+            var aggression = officer.Traits.Single(t => t.Name == "Aggression");
+            Assert.That(aggression.Value, Is.EqualTo(1.4f));
+            Assert.That(aggression.Level, Is.EqualTo("Very high"));
+            Assert.That(aggression.Line, Does.Contain("fires first"));
+
+            var admin = commanders.Single(c => c.Id == civilian.Id);
+            Assert.That(admin.Traits.Select(t => t.Name), Does.Contain("Specialization"), "an administrator's trait");
+            var patience = admin.Traits.Single(t => t.Name == "Patience");
+            Assert.That(patience.Level, Is.EqualTo("Very low"));
+            Assert.That(patience.Line, Does.Contain("quick gain"));
+        }
+
+        [Test]
         public void ProjectCommanders_returns_the_factions_people_with_rank_and_dates()
         {
             var session = Connect();

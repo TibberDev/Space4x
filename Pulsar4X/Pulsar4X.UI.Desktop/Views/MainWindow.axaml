@@ -143,6 +143,10 @@
             <TabItem Header="Colonies" Name="ColoniesTab" FontSize="14">
               <views:ColoniesView Name="ColoniesView" DataContext="{Binding Colonies}" />
             </TabItem>
+
+            <TabItem Header="People" Name="PeopleTab" FontSize="14">
+              <views:PeopleView Name="PeopleView" DataContext="{Binding People}" />
+            </TabItem>
           </TabControl>
 
           <!-- Right: facts about the selected body or ship -->

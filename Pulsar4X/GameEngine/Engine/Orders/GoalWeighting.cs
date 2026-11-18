@@ -25,8 +25,8 @@ public static class GoalWeighting
 
         // Drive DontRunOutOfFuel is represented by the RefuelAt context score, not a separate plan.
         // MakeProfit and HelpOwn are the same kind of push onto Trade and Freighter.
-        float greed = agent?.Greed ?? 1f;
-        ctx[GoalType.Trade] = GoalsDB.BaseWeights[GoalType.MakeProfit] * greed;
+        float tradeDrive = agent?.TradeDrive ?? 1f;
+        ctx[GoalType.Trade] = GoalsDB.BaseWeights[GoalType.MakeProfit] * tradeDrive;
         ctx[GoalType.Freighter] = GoalsDB.BaseWeights[GoalType.HelpOwn];
 
         return ctx;
@@ -97,7 +97,7 @@ public static class GoalWeighting
         GoalType.ExploreJP or GoalType.SurveySystem or GoalType.ServeyBodies or GoalType.ScanAnomalies
             => 1f * agent.Curiosity,
         GoalType.MakeProfit or GoalType.Trade or GoalType.Freighter
-            => 1f * agent.Greed,
+            => 1f * agent.TradeDrive,
         GoalType.Attack or GoalType.Patrol or GoalType.Scout
             => 1f * agent.Aggression,
         _ => 1f,

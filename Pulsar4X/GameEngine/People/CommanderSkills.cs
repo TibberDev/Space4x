@@ -1,5 +1,6 @@
 using System;
 using GameEngine.Engine.Orders;
+using GameEngine.People;
 using Pulsar4X.Engine;
 using Pulsar4X.Fleets;
 using Pulsar4X.Ships;
@@ -100,6 +101,21 @@ public static class CommanderSkills
             && unit.Manager.TryGetEntityById(flagInfo.CommanderID, out commander)
             && commander.TryGetDataBlob(out db))
             return true;
+
+        // A colony's administrator: the first seat at colony level or wider. A ship bridge does not count.
+        if (unit.TryGetDataBlob<AdminSpaceDB>(out var admin) && unit.Manager != null)
+        {
+            foreach (var seat in admin.CommanderSeats)
+            {
+                if (seat.SeatType < AdminLevel.Colony)
+                    continue;
+                if (seat.CommanderID >= 0
+                    && unit.Manager.TryGetGlobalEntityById(seat.CommanderID, out commander)
+                    && commander.TryGetDataBlob(out db))
+                    return true;
+                break;
+            }
+        }
 
         return false;
     }

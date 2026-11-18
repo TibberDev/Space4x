@@ -153,8 +153,11 @@ public class AgentProcessor : IInstanceProcessor
         if (!managedEntity.TryGetDataBlob<GoalsDB>(out var goalsDB))
             return; // nothing tasked
 
-        // Orient: AgentDB is optional (personality defaults inside GoalWeighting).
-        agentHost.TryGetDataBlob<AgentDB>(out var agentDB);
+        // Orient: the person in charge carries the personality: the commander woken here, else the
+        // unit's captain or administrator. AgentDB is optional (personality defaults inside GoalWeighting).
+        if (!agentHost.TryGetDataBlob<AgentDB>(out var agentDB)
+            && CommanderSkills.TryGetCommander(managedEntity, out var inCharge, out _))
+            inCharge.TryGetDataBlob(out agentDB);
         GoalWeighting.Recalculate(goalsDB, managedEntity, agentDB);
 
         Goal? goal = goalsDB.ActiveGoal;
@@ -731,7 +734,7 @@ public class AgentProcessor : IInstanceProcessor
         {
             GoalType.StayAlive or GoalType.DontRunOutOfFuel => 1.0f * agent.Caution,
             GoalType.ExploreJP or GoalType.SurveySystem or GoalType.ScanAnomalies => 1.0f * agent.Curiosity,
-            GoalType.MakeProfit or GoalType.Trade or GoalType.Freighter => 1.0f * agent.Greed,
+            GoalType.MakeProfit or GoalType.Trade or GoalType.Freighter => 1.0f * agent.TradeDrive,
             GoalType.Attack or GoalType.Patrol or GoalType.Scout => 1.0f * agent.Aggression,
             _ => 1.0f
         };

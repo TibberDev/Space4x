@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Pulsar4X.Api;
 using Pulsar4X.UI.Core.Colonies;
+using Pulsar4X.UI.Core.People;
 using Pulsar4X.UI.Core.Map;
 
 namespace Pulsar4X.UI.Core.ViewModels;
@@ -23,9 +24,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     public MainWindowViewModel(IGameLauncher launcher)
     {
         _launcher = launcher;
-        Colonies = new ColoniesViewModel(command => Client is { } client
+        Func<GameCommand, Task<CommandResult>> submit = command => Client is { } client
             ? client.SubmitCommandAsync(command)
-            : Task.FromResult(CommandResult.Reject("No game is running.")));
+            : Task.FromResult(CommandResult.Reject("No game is running."));
+        Colonies = new ColoniesViewModel(submit);
+        People = new PeopleViewModel(submit);
         Map.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(StarMapViewModel.SelectedId))
@@ -37,7 +40,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public ColoniesViewModel Colonies { get; }
 
-    public const int MapTab = 0, BodiesTab = 1, ColoniesTab = 2;
+    public PeopleViewModel People { get; }
+
+    public const int MapTab = 0, BodiesTab = 1, ColoniesTab = 2, PeopleTab = 3;
 
     /// <summary>The connected game client, or null before a game has started.</summary>
     public IGameClient? Client { get; private set; }
@@ -75,16 +80,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasSelection => Selection != null;
 
-    /// <summary>0 = map, 1 = body table, 2 = colonies.</summary>
+    /// <summary>0 = map, 1 = body table, 2 = colonies, 3 = people.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowSelectionPanel), nameof(ShowSystemList))]
     private int _selectedTab;
 
     /// <summary>The known-systems list feeds the map and body table; the colony screen hides it for room.</summary>
-    public bool ShowSystemList => SelectedTab != ColoniesTab;
+    public bool ShowSystemList => SelectedTab is MapTab or BodiesTab;
 
     /// <summary>The body panel belongs to the map and table; the colony screen has its own layout.</summary>
-    public bool ShowSelectionPanel => HasSelection && SelectedTab != ColoniesTab;
+    public bool ShowSelectionPanel => HasSelection && SelectedTab is MapTab or BodiesTab;
 
     /// <summary>The selected body hosts one of the player's colonies, so the panel offers to open it.</summary>
     [ObservableProperty]
@@ -94,6 +99,16 @@ public sealed partial class MainWindowViewModel : ObservableObject
     partial void OnSelectedTabChanged(int value)
     {
         if (value == ColoniesTab && Client is { } client) Colonies.Update(client.Galaxy);
+        if (value == PeopleTab && Client is { } c) People.Update(c.Galaxy);
+    }
+
+    /// <summary>From a colony's summary: open People on the administrators, with that colony's post picked.</summary>
+    [RelayCommand]
+    private void ChooseAdministrator()
+    {
+        if (Client is not { } client || Colonies.SelectedColony is not { } colony) return;
+        SelectedTab = PeopleTab;
+        People.ChooseAdministratorFor(colony.Id, client.Galaxy);
     }
 
     private bool CanOpenColony() => SelectedBodyColonyId != null;
@@ -205,6 +220,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         RefreshBodies(client.Galaxy, force: false);
         Map.Update(SelectedSystem is { } s ? client.Galaxy.GetSystem(s.SystemId) : null, client.Galaxy.Time.GameDateTime);
         if (SelectedTab == ColoniesTab) Colonies.Update(client.Galaxy);
+        if (SelectedTab == PeopleTab) People.Update(client.Galaxy);
     }
 
     partial void OnSelectedSystemChanged(SystemSummary? value)

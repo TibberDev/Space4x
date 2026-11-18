@@ -94,6 +94,10 @@
   <Style Selector="TextBlock.error">
     <Setter Property="Foreground" Value="{StaticResource PulsarError}" />
   </Style>
+  <!-- A trait that is not average: the ones that shape this person. -->
+  <Style Selector="TextBlock.notable">
+    <Setter Property="Foreground" Value="{StaticResource PulsarAccent}" />
+  </Style>
   <Style Selector="TextBlock.success">
     <Setter Property="Foreground" Value="{StaticResource PulsarSuccess}" />
   </Style>

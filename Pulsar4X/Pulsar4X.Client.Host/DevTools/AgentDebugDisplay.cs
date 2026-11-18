@@ -115,7 +115,7 @@ namespace Pulsar4X.Client
                 "Aggression " + agent.Aggression.ToString("0.##")
                 + "   Caution " + agent.Caution.ToString("0.##")
                 + "   Curiosity " + agent.Curiosity.ToString("0.##")
-                + "   Greed " + agent.Greed.ToString("0.##")
+                + "   Patience " + agent.Patience.ToString("0.##")
                 + "   Loyalty " + agent.Loyalty.ToString("0.##"));
         }
 

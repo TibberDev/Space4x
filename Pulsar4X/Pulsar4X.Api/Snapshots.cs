@@ -1428,6 +1428,12 @@ public sealed record CommanderSkillSnapshot(string Name, string Line);
 /// </summary>
 public sealed record CommanderDomainSnapshot(string Name, int Points, int Cap, float Quality, string Line);
 
+/// <summary>
+/// One personality trait. Value: 1 is average, 0.5 the lowest and 1.5 the highest. Level is "Very low",
+/// "Low", "Average", "High" or "Very high". Line says what the trait makes this person do.
+/// </summary>
+public sealed record CommanderTraitSnapshot(string Name, float Value, string Level, string Line);
+
 /// <summary>A faction commander (scientist, officer, …) for the personnel roster and assignment UIs.</summary>
 public sealed record CommanderSnapshot(
     int Id,
@@ -1445,6 +1451,13 @@ public sealed record CommanderSnapshot(
 
     /// <summary>Command, Nav, and Survey. Present even when every value is 0.</summary>
     public IReadOnlyList<CommanderDomainSnapshot> Domains { get; init; } = Array.Empty<CommanderDomainSnapshot>();
+
+    /// <summary>
+    /// Personality: Aggression, Caution, Curiosity, Patience and Loyalty, plus Specialization for an
+    /// administrator. Traits shape what automation chooses; skills shape how well it is done.
+    /// Empty for a commander from a save made before traits.
+    /// </summary>
+    public IReadOnlyList<CommanderTraitSnapshot> Traits { get; init; } = Array.Empty<CommanderTraitSnapshot>();
 
     /// <summary>Numeric rank within the commander's career track.</summary>
     public int Rank { get; init; }

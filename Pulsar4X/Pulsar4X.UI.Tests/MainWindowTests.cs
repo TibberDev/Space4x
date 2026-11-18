@@ -341,6 +341,55 @@ public class MainWindowTests
     }
 
     [AvaloniaTest]
+    public async Task Fleets_screen_shows_ships_and_captains_and_takes_orders()
+    {
+        var (window, vm) = await OpenRunningGame();
+        window.Height = 900;
+        vm.SelectedTab = MainWindowViewModel.FleetsTab;
+        vm.Tick();
+        Pump();
+        var fleets = vm.Fleets;
+        foreach (var f in fleets.Fleets)
+            TestContext.Out.WriteLine($"fleet {f.Name} | {f.ShipsText} | {f.Location} | {f.GoalText}");
+        Assert.That(Find<ListBox>(window, "FleetList").ItemCount, Is.EqualTo(fleets.Fleets.Count).And.GreaterThan(0));
+        Assert.That(fleets.SelectedFleet, Is.Not.Null);
+        Assert.That(fleets.Ships, Is.Not.Empty);
+        var ship = fleets.Ships.First();
+        TestContext.Out.WriteLine($"ship {ship.Name} | {ship.Design} | {ship.Captain} | {ship.GoalText}");
+        Assert.That(ship.HasCaptain, Is.True, "the starting Starship has a captain");
+        Assert.That(fleets.Bodies.Select(b => b.Name), Does.Contain("Luna"));
+        Assert.That(window.GetVisualDescendants().OfType<ListBox>().Any(l => l.Name == "SystemList" && l.IsEffectivelyVisible),
+            Is.False, "the known-systems list is hidden on the fleets screen");
+
+        // Starship I has no construction bay and Earth holds no starter crates: founding is refused, with a reason.
+        fleets.SelectedBody = fleets.Bodies.First(b => b.Name == "Luna");
+        Pump();
+        Assert.That(Find<Button>(window, "FoundColonyButton").IsEffectivelyEnabled, Is.True);
+        await fleets.FoundColonyCommand.ExecuteAsync(null);
+        TestContext.Out.WriteLine($"found: {fleets.Sink.Message}");
+        Assert.That(fleets.Sink.IsError, Is.True);
+        vm.Tick();
+        Pump();
+        Capture(window, "14-fleets");
+
+        // Supply is a standing order for the captained ship.
+        fleets.SelectedShip = ship;
+        await fleets.SupplyCommand.ExecuteAsync(null);
+        Assert.That(fleets.Sink.IsError, Is.False, fleets.Sink.Message);
+
+        // From the map: a selected ship offers its fleet.
+        vm.SelectedTab = MainWindowViewModel.MapTab;
+        vm.Map.Select(ship.Id);
+        vm.Tick();
+        Pump();
+        Assert.That(vm.SelectedShipId, Is.EqualTo(ship.Id));
+        vm.OpenFleetCommand.Execute(null);
+        Assert.That(vm.SelectedTab, Is.EqualTo(MainWindowViewModel.FleetsTab));
+        Assert.That(fleets.SelectedShip?.Id, Is.EqualTo(ship.Id));
+        window.Close();
+    }
+
+    [AvaloniaTest]
     public async Task Failed_start_shows_the_error_message()
     {
         var (window, vm) = Open(new SharedGame.FailingLauncher());

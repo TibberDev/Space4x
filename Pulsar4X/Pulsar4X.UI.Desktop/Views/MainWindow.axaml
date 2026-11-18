@@ -144,6 +144,10 @@
               <views:ColoniesView Name="ColoniesView" DataContext="{Binding Colonies}" />
             </TabItem>
 
+            <TabItem Header="Fleets" Name="FleetsTab" FontSize="14">
+              <views:FleetsView Name="FleetsView" DataContext="{Binding Fleets}" />
+            </TabItem>
+
             <TabItem Header="People" Name="PeopleTab" FontSize="14">
               <views:PeopleView Name="PeopleView" DataContext="{Binding People}" />
             </TabItem>
@@ -169,6 +173,9 @@
                 <Button Name="OpenColonyButton" Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectedBodyColonyId, Converter={x:Static ObjectConverters.IsNotNull}}"
                         Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenColonyCommand}">Open colony</Button>
+                <Button Name="OpenFleetButton" Classes="accent" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                        IsVisible="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).SelectedShipId, Converter={x:Static ObjectConverters.IsNotNull}}"
+                        Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).OpenFleetCommand}">Open fleet</Button>
                 <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
                         Command="{Binding $parent[Window].((vm:MainWindowViewModel)DataContext).ShowOnMapCommand}">Show on map</Button>
               </StackPanel>

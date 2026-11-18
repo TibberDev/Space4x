@@ -270,6 +270,8 @@
         "default-design-research-lab",
         "default-design-warehouse",
         "default-design-infrastructure",
+        "default-design-infrastructure-mars",
+        "default-design-infrastructure-luna",
         "default-design-city-hall",
         "default-design_solarpanel",
         "default-design-battery-25kg",
@@ -292,7 +294,8 @@
       ],
       "ShipDesigns": [
         "early-ship-design-starship",
-        "early-ship-design-newton-tug"
+        "early-ship-design-newton-tug",
+        "early-ship-design-starship-cargo"
       ],
       "Fleets": [
         {

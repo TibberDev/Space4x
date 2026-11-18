@@ -264,7 +264,7 @@ public class ScenarioWizardTests
     }
 
     [Test]
-    public void ExplicitEarlyTech_HasOneEarthHqAndTwoShipDesigns()
+    public void ExplicitEarlyTech_HasOneEarthHqAndThreeShipDesigns()
     {
         ModsState.RefreshModsList("Data");
         var available = ModsState.AvailableMods.Select(m => m.Path).ToList();
@@ -302,7 +302,7 @@ public class ScenarioWizardTests
 
         var info = result.Value.faction.GetDataBlob<FactionInfoDB>();
         Assert.That(info.ShipDesigns.Keys,
-            Is.EquivalentTo(new[] { "early-ship-design-starship", "early-ship-design-newton-tug" }));
+            Is.EquivalentTo(new[] { "early-ship-design-starship", "early-ship-design-newton-tug", "early-ship-design-starship-cargo" }));
         Assert.That(result.Value.game.Systems.Select(s => s.ID), Does.Contain("system-sol"));
     }
 

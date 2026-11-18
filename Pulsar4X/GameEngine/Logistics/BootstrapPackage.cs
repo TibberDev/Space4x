@@ -38,6 +38,26 @@ internal readonly record struct MountChoice(bool Possible, bool ByShip, long Shi
 /// </summary>
 internal static class BootstrapPackage
 {
+    /// <summary>
+    /// The mod's default crate list for a fleet Bootstrap order, minus any design this faction does not
+    /// have or cannot crate. Lists from every loaded mod are joined in the order the mods loaded.
+    /// </summary>
+    internal static List<Pulsar4X.Api.BootstrapCrateRequest> DefaultCrates(Game game, FactionInfoDB info)
+    {
+        var lines = new List<Pulsar4X.Api.BootstrapCrateRequest>();
+        foreach (var list in game.StartingGameData.BootstrapDefaults.Values)
+        {
+            foreach (var line in list.Crates)
+            {
+                if (line.Count <= 0 || lines.Any(l => l.DesignId == line.DesignId))
+                    continue;
+                if (info.ComponentDesigns.TryGetValue(line.DesignId, out var design) && LocalConstructionJob.IsCrate(design))
+                    lines.Add(new Pulsar4X.Api.BootstrapCrateRequest(line.DesignId, line.Count));
+            }
+        }
+        return lines;
+    }
+
     /// <summary><see cref="ShipmentCargo.FleetOrder"/> of every package this order seals, followed by the goal id.</summary>
     public const string OrderPrefix = "bootstrap ";
 

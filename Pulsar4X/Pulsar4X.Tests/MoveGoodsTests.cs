@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using GameEngine.Engine.Orders;
 using NUnit.Framework;
+using Pulsar4X.Industry;
 using Pulsar4X.Api;
 using Pulsar4X.Colonies;
 using Pulsar4X.Components;
@@ -279,6 +280,85 @@ public class MoveGoodsTests
 
         Assert.That(result.Accepted, Is.False);
         Assert.That(result.RejectionReason, Is.EqualTo("The colony is not yours."));
+    }
+
+    // ---- Supply colonies (vertical slice step 4) ----
+
+    /// <summary>Queues a site job at the colony that still needs this much iron.</summary>
+    static void QueueWorkNeedingIron(Scene scene, Entity colony, long iron)
+    {
+        var design = new Pulsar4X.Components.ComponentDesign(); // only the job's remaining resources matter here
+        var job = new LocalConstructionJob(design);
+        job.ResourcesRemaining.Clear();
+        job.ResourcesRemaining["iron"] = iron;
+        if (!colony.TryGetDataBlob<LocalConstructionDB>(out var construction))
+        {
+            construction = new LocalConstructionDB { PointsPerDay = 10 };
+            colony.SetDataBlob(construction);
+        }
+        construction.BuildQueue.Enqueue(job);
+    }
+
+    [Test]
+    public void Supply_CarriesWhatQueuedWorkLacks_FromTheColonyWithSpare()
+    {
+        var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        QueueWorkNeedingIron(scene, scene.Dest, 7);
+        Assert.That(ColonyAdministration.Wants(scene.Dest), Is.EquivalentTo(new Dictionary<string, long> { ["iron"] = 7 }));
+        scene.Source.GetDataBlob<CargoStorageDB>().TransferRangeDv_mps = 1e12;
+        scene.Dest.GetDataBlob<CargoStorageDB>().TransferRangeDv_mps = 1e12;
+        var goal = new Goal(GoalType.SupplyColonies) { Name = "Supply colonies" };
+        var planner = new SupplyColoniesPlan();
+
+        var plan = planner.Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Active), plan.Message);
+        Assert.That(goal.SourceEntityId, Is.EqualTo(scene.Source.Id));
+        Assert.That(goal.DestEntityId, Is.EqualTo(scene.Dest.Id));
+        Assert.That(goal.MoveGoodsLines.Single().Requested, Is.EqualTo(7));
+        Assert.That(Scene.Log(scene.Ship).Last(), Does.Contain("carrying 7 Iron").And.Contain("queued work needs"));
+
+        Scene.Drain(scene.Source);
+        planner.Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+        Scene.Drain(scene.Dest);
+        plan = planner.Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+
+        Assert.That(scene.Dest.GetDataBlob<CargoStorageDB>().GetUnitsStored(scene.Iron, false), Is.EqualTo(7));
+        Assert.That(scene.Source.GetDataBlob<CargoStorageDB>().GetUnitsStored(scene.Iron, false), Is.EqualTo(43));
+        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Active), "a standing order stays on");
+        Assert.That(plan.Message, Is.EqualTo("Nothing needed"));
+        Assert.That(Scene.Log(scene.Ship), Does.Contain("Supply: Delivered."));
+    }
+
+    [Test]
+    public void Supply_LeavesTheSourceWhatItsOwnWorkNeeds()
+    {
+        var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        QueueWorkNeedingIron(scene, scene.Dest, 9);
+        QueueWorkNeedingIron(scene, scene.Source, 46);
+        Assert.That(ColonyAdministration.Spare(scene.Source, "iron"), Is.EqualTo(4));
+
+        Assert.That(SupplyColoniesPlan.TryChooseTrip(scene.Ship, out _, out _, out var lines, out _), Is.True);
+        Assert.That(lines.Single().Requested, Is.EqualTo(4), "only the spare goes");
+    }
+
+    [Test]
+    public void Supply_WithNothingWanted_Waits()
+    {
+        var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        var goal = new Goal(GoalType.SupplyColonies);
+        var plan = new SupplyColoniesPlan().Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Active));
+        Assert.That(plan.Message, Is.EqualTo("Nothing needed"));
+        Assert.That(goal.MoveGoodsLines, Is.Empty);
+    }
+
+    [Test]
+    public void Supply_IsAnOrderForACaptainedShip()
+    {
+        var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0, commanderId: -1);
+        var result = new CommandTranslator(scene.Game).Translate(scene.Faction, scene.Ship, new SupplyColoniesCommand(scene.Ship.Id));
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(result.RejectionReason, Does.Contain("no captain"));
     }
 
     sealed class Scene

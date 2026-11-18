@@ -62,6 +62,8 @@ namespace Pulsar4X.Engine.Api
                 [typeof(FleetFreighterCommand)] = TranslateFleetFreighter,
                 [typeof(FleetHaulContractCommand)] = TranslateFleetHaulContract,
                 [typeof(MoveGoodsCommand)] = TranslateMoveGoods,
+                [typeof(SupplyColoniesCommand)] = TranslateSupplyColonies,
+                [typeof(FoundColonyCommand)] = TranslateFoundColony,
                 [typeof(BootstrapColonyCommand)] = TranslateBootstrapColony,
                 [typeof(FleetBootstrapCommand)] = TranslateFleetBootstrap,
                 [typeof(QueueMoveGoodsCommand)] = TranslateQueueMoveGoods,
@@ -526,6 +528,69 @@ namespace Pulsar4X.Engine.Api
                 crates.Add(new BootstrapCrateLine { DesignId = request.DesignId, Count = request.Count });
             }
             return null;
+        }
+
+        private CommandResult TranslateSupplyColonies(Entity faction, Entity commanded, GameCommand command)
+        {
+            if (commanded.HasDataBlob<FleetDB>() || !commanded.HasDataBlob<ShipInfoDB>())
+                return CommandResult.Reject("Supply colonies is an order for one ship.");
+            if (RejectGoalWithoutCaptain(commanded) is { } rejected)
+                return rejected;
+            if (!commanded.HasDataBlob<CargoStorageDB>())
+                return CommandResult.Reject("The ship has no cargo storage.");
+            var goal = new Goal(GoalType.SupplyColonies) { Name = "Supply colonies" };
+            AgentProcessor.AssignGoal(commanded, goal);
+            if (goal.Status == GoalStatus.Failed)
+                return CommandResult.Reject(goal.Message);
+            return CommandResult.Ok(goal.Id);
+        }
+
+        /// <summary>
+        /// Settle the colony, then hand the fleet a Bootstrap order with the default crates and a City Hall's
+        /// resources. When the Bootstrap order is refused, the new colony is removed again and nobody moves.
+        /// </summary>
+        private CommandResult TranslateFoundColony(Entity faction, Entity commanded, GameCommand command)
+        {
+            var found = (FoundColonyCommand)command;
+            if (RejectUnlessFleet(commanded) is { } notFleet)
+                return notFleet;
+            if (!TryResolve(found.BodyId, out var body) || !body.HasDataBlob<Pulsar4X.Galaxy.SystemBodyInfoDB>())
+                return CommandResult.Reject("That is not a body to settle.");
+            if (!TryResolve(found.SourceId, out var source))
+                return CommandResult.Reject("the colony is gone.");
+            if (RejectWarehouse(faction, source) is { } sourceBad)
+                return sourceBad;
+            if (!faction.TryGetDataBlob<FactionInfoDB>(out var info) || info.Species.Count == 0)
+                return CommandResult.Reject("The faction has no species to settle the colony with.");
+            if (info.Colonies.Any(c => c.TryGetDataBlob<ColonyInfoDB>(out var ci) && ci.PlanetEntity.Id == body.Id))
+                return CommandResult.Reject("You already have a colony there.");
+            var species = info.Species[0];
+            var sourceInfo = source.GetDataBlob<ColonyInfoDB>();
+            if (found.Settlers < 1 || sourceInfo.Population.GetValueOrDefault(species.Id) <= found.Settlers)
+                return CommandResult.Reject($"{source.GetName(faction.Id)} cannot spare {found.Settlers:N0} settlers.");
+
+            var crates = Pulsar4X.Logistics.BootstrapPackage.DefaultCrates(_game, info);
+            var cityHall = info.ComponentDesigns.Values
+                .Where(d => d.IsValid && LocalConstructionJob.IsSiteOnly(d) && d.HasAttribute<AdminSpaceAtb>())
+                .OrderBy(d => d.Name, StringComparer.Ordinal)
+                .FirstOrDefault();
+            var siteBuilds = cityHall == null
+                ? new List<BootstrapCrateRequest>()
+                : new List<BootstrapCrateRequest> { new(cityHall.UniqueID, 1) };
+
+            var colony = ColonyFactory.CreateColony(faction, species, body, 0);
+            var result = TranslateFleetBootstrap(faction, commanded,
+                new FleetBootstrapCommand(commanded.Id, source.Id, colony.Id, crates, siteBuilds));
+            if (!result.Accepted)
+            {
+                info.Colonies.Remove(colony);
+                colony.Destroy();
+                return result;
+            }
+
+            sourceInfo.Population[species.Id] -= found.Settlers;
+            colony.GetDataBlob<ColonyInfoDB>().Population[species.Id] = found.Settlers;
+            return result;
         }
 
         private CommandResult TranslateFleetBootstrap(Entity faction, Entity commanded, GameCommand command)

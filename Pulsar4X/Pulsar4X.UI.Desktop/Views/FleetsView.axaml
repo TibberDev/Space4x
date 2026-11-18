@@ -1,0 +1,146 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fl="using:Pulsar4X.UI.Core.Fleets"
+             x:Class="Pulsar4X.UI.Desktop.Views.FleetsView"
+             x:DataType="fl:FleetsViewModel">
+
+  <Grid ColumnDefinitions="260,*">
+    <!-- Fleet list -->
+    <Border Classes="panel" BorderThickness="0,0,1,0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Classes="heading" Text="FLEETS" />
+        <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="12,0" TextWrapping="Wrap"
+                   IsVisible="{Binding HasNoFleets}" Text="You have no fleets yet." />
+        <ListBox Name="FleetList" ItemsSource="{Binding Fleets}" SelectedItem="{Binding SelectedFleet}" Background="Transparent">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="fl:FleetRow">
+              <StackPanel Margin="0,2">
+                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                <TextBlock Classes="muted" FontSize="12">
+                  <Run Text="{Binding ShipsText}" />
+                  <Run Text=" · " />
+                  <Run Text="{Binding Location}" />
+                </TextBlock>
+                <TextBlock Classes="muted" FontSize="12" Text="{Binding GoalText}" TextTrimming="CharacterEllipsis" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+
+    <!-- Selected fleet -->
+    <ScrollViewer Grid.Column="1" IsVisible="{Binding HasFleet}">
+      <StackPanel Margin="20,14,20,16" Spacing="12">
+        <StackPanel>
+          <TextBlock Name="FleetName" Text="{Binding Name}" FontSize="22" FontWeight="SemiBold" />
+          <TextBlock Text="{Binding Location}" Classes="muted" />
+          <TextBlock Margin="0,4,0,0" TextWrapping="Wrap">
+            <Run Text="Doing: " Foreground="{StaticResource PulsarMuted}" />
+            <Run Text="{Binding GoalText}" />
+          </TextBlock>
+        </StackPanel>
+
+        <WrapPanel ItemSpacing="12" LineSpacing="12">
+          <!-- Ships and captains -->
+          <Border Classes="card" Width="440">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="cardtitle" Text="Ships" />
+              <ListBox Name="ShipList" Classes="compact" ItemsSource="{Binding Ships}" SelectedItem="{Binding SelectedShip}" Background="Transparent">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="fl:ShipRow">
+                    <StackPanel Margin="0,2">
+                      <TextBlock>
+                        <Run Text="{Binding Name}" FontWeight="SemiBold" />
+                        <Run Text="  " />
+                        <Run Text="{Binding Design}" Foreground="{StaticResource PulsarMuted}" />
+                      </TextBlock>
+                      <TextBlock Classes="muted" FontSize="12">
+                        <Run Text="Captain: " />
+                        <Run Text="{Binding Captain}" />
+                      </TextBlock>
+                      <TextBlock Classes="muted" FontSize="12" Text="{Binding GoalText}" TextWrapping="Wrap" />
+                    </StackPanel>
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <TextBlock Classes="muted" FontSize="12" Text="Captain for the selected ship:" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <ComboBox Name="OfficerPicker" Width="240" PlaceholderText="Pick an officer"
+                          ItemsSource="{Binding Officers}" SelectedItem="{Binding SelectedOfficer}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="fl:OfficerOption">
+                      <TextBlock Text="{Binding Text}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Name="AssignCaptainButton" Content="Assign" Classes="small" Command="{Binding AssignCaptainCommand}" />
+                <Button Content="Stand down" Classes="small" Command="{Binding RelieveCaptainCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <!-- Orders -->
+          <Border Classes="card" Width="420">
+            <StackPanel Spacing="8">
+              <TextBlock Classes="cardtitle" Text="Orders" />
+              <TextBlock Classes="muted" FontSize="12" Text="Target body" />
+              <ComboBox Name="BodyPicker" HorizontalAlignment="Stretch" PlaceholderText="Pick a body in this system"
+                        ItemsSource="{Binding Bodies}" SelectedItem="{Binding SelectedBody}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="fl:TargetOption">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Name="MoveButton" Content="Move there" Command="{Binding MoveCommand}" />
+                <Button Name="SurveyButton" Content="Survey it" Command="{Binding SurveyCommand}" IsVisible="{Binding CanGeoSurvey}" />
+                <Button Name="CancelButton" Content="Cancel order" Command="{Binding CancelCommand}" />
+              </StackPanel>
+
+              <Separator Margin="0,4" />
+              <TextBlock Classes="cardtitle" Text="Found a colony" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                         Text="Settles the target body with 1,000 people from the source, and carries the starter crates and a City Hall's materials there. Needs a ship with a construction bay, and the crates waiting at the source." />
+              <Grid ColumnDefinitions="80,*">
+                <TextBlock Text="Source" VerticalAlignment="Center" />
+                <ComboBox Name="SourcePicker" Grid.Column="1" HorizontalAlignment="Stretch"
+                          ItemsSource="{Binding Colonies}" SelectedItem="{Binding SelectedSource}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="fl:TargetOption">
+                      <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </Grid>
+              <Button Name="FoundColonyButton" Content="Found colony on target" Command="{Binding FoundColonyCommand}" />
+
+              <Separator Margin="0,4" />
+              <TextBlock Classes="cardtitle" Text="Supply" />
+              <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
+                         Text="The selected ship carries what your colonies' queued work lacks, from colonies with spare, until you cancel. Needs a captain." />
+              <Button Name="SupplyButton" Content="Keep colonies supplied" Command="{Binding SupplyCommand}" HorizontalAlignment="Left" />
+            </StackPanel>
+          </Border>
+        </WrapPanel>
+
+        <Border Classes="card" IsVisible="{Binding HasOrders}">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="cardtitle" Text="Queued actions" />
+            <ItemsControl Name="OrderList" ItemsSource="{Binding Orders}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="x:String">
+                  <TextBlock Text="{Binding}" Classes="muted" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <TextBlock Text="{Binding Sink.Message}" IsVisible="{Binding Sink.HasMessage}" TextWrapping="Wrap"
+                   Classes.error="{Binding Sink.IsError}" Classes.success="{Binding !Sink.IsError}" />
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

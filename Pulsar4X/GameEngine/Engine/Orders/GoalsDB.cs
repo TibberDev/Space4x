@@ -144,6 +144,8 @@ public enum GoalType
 
     // The fleet order behind DeliverShipment: hands whole lines of the package to free cargo ships. Appended so saved values stay put.
     FleetDeliverShipment,
+    // One ship keeps the faction's colonies supplied: it carries what their queued work lacks from colonies with spare. Appended so saved values stay put.
+    SupplyColonies,
 }
 
 public enum MoveGoodsLeg

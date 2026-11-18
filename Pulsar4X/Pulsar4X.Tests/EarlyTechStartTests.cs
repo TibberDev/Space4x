@@ -436,7 +436,7 @@ public class EarlyTechStartTests
         var (game, faction) = StartGameLikeTheMenu(EarlyTech);
         var info = faction.GetDataBlob<FactionInfoDB>();
 
-        Assert.That(info.ShipDesigns.Keys, Is.EquivalentTo(new[] { "early-ship-design-starship", "early-ship-design-newton-tug" }));
+        Assert.That(info.ShipDesigns.Keys, Is.EquivalentTo(new[] { "early-ship-design-starship", "early-ship-design-newton-tug", "early-ship-design-starship-cargo" }));
         var ships = game.Systems.SelectMany(system => system.GetAllEntitiesWithDataBlob<ShipInfoDB>()).ToList();
         Assert.That(ships, Has.Count.EqualTo(1));
 

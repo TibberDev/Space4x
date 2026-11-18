@@ -483,6 +483,79 @@ public class BootstrapColonyTests
         Assert.That(plan.Message, Is.EqualTo("nothing fits"));
     }
 
+    // ---- Found colony (vertical slice step 4) ----
+
+    /// <summary>A body to settle, a species, 10,000 people at the source, and every default crate in its warehouse.</summary>
+    static (Scene Scene, Entity Body, Entity Species, Entity Fleet) FoundingScene(bool withCrates)
+    {
+        var scene = Build(crates: 0);
+        var species = SpeciesFactory.CreateFromBlueprint(scene.System, Store.Species["species-human"]);
+        species.FactionOwnerID = scene.Faction.Id;
+        scene.Info.Species.Add(species);
+        scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id] = 10_000;
+        if (withCrates)
+        {
+            foreach (var line in BootstrapPackage.DefaultCrates(Game, scene.Info))
+                for (int i = 0; i < line.Count; i++)
+                    Assert.That(scene.Source.GetDataBlob<CargoStorageDB>()
+                        .AddCargoByUnit(new ComponentInstance(scene.Info.ComponentDesigns[line.DesignId]), 1), Is.EqualTo(1), line.DesignId);
+            // The City Hall is built on site from resources that travel with the crates.
+            StockResources(scene, scene.Info.ComponentDesigns[CityHall].ResourceCosts);
+        }
+        var fleet = FleetFactory.Create(scene.System, scene.Faction.Id, "Founders");
+        fleet.GetDataBlob<FleetDB>().AddChild(scene.Ship);
+        // Settle the source's own planet: inside a Starship captain's reach (one gravity well). The scene's
+        // spare empty colony there goes first, so the body is free.
+        scene.Info.Colonies.Remove(scene.Dest);
+        scene.Dest.Destroy();
+        return (scene, scene.Planet, species, fleet);
+    }
+
+    static Entity? ColonyOn(Scene scene, Entity body)
+        => scene.Info.Colonies.FirstOrDefault(c => c.Id != scene.Source.Id && c.GetDataBlob<ColonyInfoDB>().PlanetEntity.Id == body.Id);
+
+    [Test]
+    public void FoundColony_SettlesTheBody_AndHandsTheFleetTheDefaultPackage()
+    {
+        var (scene, body, species, fleet) = FoundingScene(withCrates: true);
+
+        var result = scene.Translate(fleet, new FoundColonyCommand(fleet.Id, body.Id, scene.Source.Id, 1000));
+
+        Assert.That(result.Accepted, Is.True, result.RejectionReason);
+        var colony = ColonyOn(scene, body);
+        Assert.That(colony, Is.Not.Null);
+        Assert.That(colony!.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(1000));
+        Assert.That(scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(9000), "the settlers come from the source");
+        var goal = fleet.GetDataBlob<GoalsDB>().ActiveGoal!;
+        Assert.That(goal.Type, Is.EqualTo(GoalType.FleetBootstrap));
+        Assert.That(goal.DestEntityId, Is.EqualTo(colony.Id));
+        Assert.That(goal.BootstrapSiteBuilds.Select(b => b.DesignId), Does.Contain(CityHall), "the City Hall's resources go too");
+    }
+
+    [Test]
+    public void FoundColony_ThatTheFleetCannotSupply_LeavesNothingBehind()
+    {
+        var (scene, body, species, fleet) = FoundingScene(withCrates: false);
+        int colonies = scene.Info.Colonies.Count;
+
+        var result = scene.Translate(fleet, new FoundColonyCommand(fleet.Id, body.Id, scene.Source.Id, 1000));
+
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(ColonyOn(scene, body), Is.Null, "the new colony is removed again");
+        Assert.That(scene.Info.Colonies, Has.Count.EqualTo(colonies));
+        Assert.That(scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(10_000), "nobody moved");
+    }
+
+    [Test]
+    public void FoundColony_NeedsSettlersToSpare()
+    {
+        var (scene, body, species, fleet) = FoundingScene(withCrates: true);
+        scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id] = 500;
+        var result = scene.Translate(fleet, new FoundColonyCommand(fleet.Id, body.Id, scene.Source.Id, 1000));
+        Assert.That(result.Accepted, Is.False);
+        Assert.That(result.RejectionReason, Does.Contain("cannot spare 1,000 settlers"));
+    }
+
     static void Drain(Entity holder)
     {
         holder.GetDataBlob<CargoStorageDB>().TransferRate = 1_000_000;

@@ -410,6 +410,60 @@ public static class ColonyAdministration
         return sum;
     }
 
+    // ------------------------------------------------------------------ wants (what supply ships carry)
+
+    /// <summary>
+    /// What the colony's queued work is short of: construction and factory jobs' remaining resources, less
+    /// what is already in the warehouse. Cargo id to units. A freighter on Supply colonies brings these.
+    /// </summary>
+    public static Dictionary<string, long> Wants(Entity colony)
+    {
+        var needed = new Dictionary<string, long>();
+        void Add(Dictionary<string, long>? remaining)
+        {
+            if (remaining == null)
+                return;
+            foreach (var (id, amount) in remaining)
+                if (amount > 0)
+                    needed[id] = needed.GetValueOrDefault(id) + amount;
+        }
+        if (colony.TryGetDataBlob<LocalConstructionDB>(out var construction))
+            foreach (var job in construction.BuildQueue)
+                Add(job.ResourcesRemaining);
+        if (colony.TryGetDataBlob<IndustryAbilityDB>(out var industry))
+            foreach (var line in industry.ProductionLines.Values)
+                foreach (var job in line.Jobs)
+                    Add(job.ResourcesRequiredRemaining);
+
+        var wants = new Dictionary<string, long>();
+        foreach (var (id, amount) in needed)
+        {
+            long gap = amount - Stock(colony, id);
+            if (gap > 0)
+                wants[id] = gap;
+        }
+        return wants;
+    }
+
+    /// <summary>Units of a good the colony can give away: its stock less what its own queued work needs.</summary>
+    public static long Spare(Entity colony, string cargoId)
+    {
+        long stock = Stock(colony, cargoId);
+        if (stock <= 0)
+            return 0;
+        long ownNeed = 0;
+        if (colony.TryGetDataBlob<LocalConstructionDB>(out var construction))
+            foreach (var job in construction.BuildQueue)
+                ownNeed += job.ResourcesRemaining.GetValueOrDefault(cargoId);
+        if (colony.TryGetDataBlob<IndustryAbilityDB>(out var industry))
+            foreach (var line in industry.ProductionLines.Values)
+                foreach (var job in line.Jobs)
+                    ownNeed += job.ResourcesRequiredRemaining?.GetValueOrDefault(cargoId) ?? 0;
+        // Plant fuel keeps its runway.
+        ownNeed += ColonyPowerProcessor.FuelReserveUnits(colony, cargoId);
+        return Math.Max(0, stock - ownNeed);
+    }
+
     // ------------------------------------------------------------------ doing it
 
     static bool Carry(Entity colony, FactionInfoDB info, ColonySuggestion suggestion)

@@ -134,6 +134,20 @@ public sealed record FleetBootstrapCommand(
     IReadOnlyList<BootstrapCrateRequest>? SiteBuilds = null,
     string? InfrastructureDesignId = null) : GameCommand(TargetEntityId);
 
+/// <summary>
+/// Found a colony on a body with this fleet. Targets the fleet. The colony is settled at once with
+/// <see cref="Settlers"/> people moved from the source colony, then a fleet Bootstrap order carries the mod's
+/// default crate list and a City Hall's resources there, so the colony gets an administrator's post.
+/// Rejected (and nothing founded) when the fleet cannot take the order, for example with crates missing.
+/// </summary>
+public sealed record FoundColonyCommand(int TargetEntityId, int BodyId, int SourceId, long Settlers = 1000) : GameCommand(TargetEntityId);
+
+/// <summary>
+/// A standing order for one captained cargo ship: keep this faction's colonies in its system supplied with
+/// the state's own goods, carrying what each colony's queued work lacks from colonies with spare. Targets the ship.
+/// </summary>
+public sealed record SupplyColoniesCommand(int TargetEntityId) : GameCommand(TargetEntityId);
+
 /// <summary>Empty chair. Plot the flight to the source and a load. The load plots the destination when it finishes.</summary>
 public sealed record QueueMoveGoodsCommand(
     int TargetEntityId,

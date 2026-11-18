@@ -2490,7 +2490,7 @@ namespace Pulsar4X.Engine.Api
             {
                 Templates = templates,
                 Designs = designs,
-                BootstrapDefaults = BootstrapDefaultList(info),
+                BootstrapDefaults = Pulsar4X.Logistics.BootstrapPackage.DefaultCrates(_game, info),
             };
         }
 
@@ -2505,26 +2505,6 @@ namespace Pulsar4X.Engine.Api
                     ? info.Data.CargoGoods.GetAny(cargoId)!.Name
                     : cargoId;
                 lines.Add(new ResourceCostLine(cargoId, name, amount));
-            }
-            return lines;
-        }
-
-        /// <summary>
-        /// The mod's default crate list for a fleet Bootstrap order, minus any design this faction does not
-        /// have or cannot crate. Lists from every loaded mod are joined in the order the mods loaded.
-        /// </summary>
-        private List<BootstrapCrateRequest> BootstrapDefaultList(FactionInfoDB info)
-        {
-            var lines = new List<BootstrapCrateRequest>();
-            foreach (var list in _game.StartingGameData.BootstrapDefaults.Values)
-            {
-                foreach (var line in list.Crates)
-                {
-                    if (line.Count <= 0 || lines.Any(l => l.DesignId == line.DesignId))
-                        continue;
-                    if (info.ComponentDesigns.TryGetValue(line.DesignId, out var design) && LocalConstructionJob.IsCrate(design))
-                        lines.Add(new BootstrapCrateRequest(line.DesignId, line.Count));
-                }
             }
             return lines;
         }

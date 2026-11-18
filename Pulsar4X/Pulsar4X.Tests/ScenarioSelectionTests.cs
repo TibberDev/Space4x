@@ -107,7 +107,7 @@ public class ScenarioSelectionTests
     }
 
     [Test]
-    public void LoadModStore_ExplicitEarlyTech_HasOnlyTheEarthHqAndTwoShipDesigns()
+    public void LoadModStore_ExplicitEarlyTech_HasOnlyTheEarthHqAndThreeShipDesigns()
     {
         ModsState.RefreshModsList("Data");
         var store = GameLifecycle.LoadModStore(
@@ -142,7 +142,7 @@ public class ScenarioSelectionTests
 
         var info = result.Value.faction.GetDataBlob<FactionInfoDB>();
         Assert.That(info.ShipDesigns.Keys,
-            Is.EquivalentTo(new[] { "early-ship-design-starship", "early-ship-design-newton-tug" }));
+            Is.EquivalentTo(new[] { "early-ship-design-starship", "early-ship-design-newton-tug", "early-ship-design-starship-cargo" }));
     }
 
     [Test]

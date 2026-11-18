@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Pulsar4X.Api;
 using Pulsar4X.UI.Core.Colonies;
+using Pulsar4X.UI.Core.Fleets;
 using Pulsar4X.UI.Core.Inbox;
 using Pulsar4X.UI.Core.People;
 using Pulsar4X.UI.Core.Map;
@@ -30,6 +31,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
             : Task.FromResult(CommandResult.Reject("No game is running."));
         Colonies = new ColoniesViewModel(submit);
         People = new PeopleViewModel(submit);
+        Fleets = new FleetsViewModel(submit);
         Inbox = new InboxViewModel(submit);
         Map.PropertyChanged += (_, e) =>
         {
@@ -44,9 +46,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public PeopleViewModel People { get; }
 
+    public FleetsViewModel Fleets { get; }
+
     public InboxViewModel Inbox { get; }
 
-    public const int MapTab = 0, BodiesTab = 1, ColoniesTab = 2, PeopleTab = 3, InboxTab = 4;
+    public const int MapTab = 0, BodiesTab = 1, ColoniesTab = 2, FleetsTab = 3, PeopleTab = 4, InboxTab = 5;
 
     /// <summary>The Administrator section of the colony screen.</summary>
     public const int AdministratorSection = 4;
@@ -87,7 +91,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
 
     public bool HasSelection => Selection != null;
 
-    /// <summary>0 = map, 1 = body table, 2 = colonies, 3 = people, 4 = inbox.</summary>
+    /// <summary>0 = map, 1 = body table, 2 = colonies, 3 = fleets, 4 = people, 5 = inbox.</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowSelectionPanel), nameof(ShowSystemList))]
     private int _selectedTab;
@@ -107,6 +111,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     {
         if (value == ColoniesTab && Client is { } client) Colonies.Update(client.Galaxy);
         if (value == PeopleTab && Client is { } c) People.Update(c.Galaxy);
+        if (value == FleetsTab && Client is { } g) Fleets.Update(g.Galaxy);
     }
 
     /// <summary>From the inbox: open the suggestion's colony on its Administrator section.</summary>
@@ -165,6 +170,23 @@ public sealed partial class MainWindowViewModel : ObservableObject
         var system = Client != null && SelectedSystem != null ? Client.Galaxy.GetSystem(SelectedSystem.SystemId) : null;
         Selection = system != null && Map.SelectedId is { } id ? SelectionInfo.From(system, id) : null;
         SelectedBodyColonyId = system != null && Map.SelectedId is { } bodyId ? ColoniesViewModel.OwnColonyOnBody(system, bodyId) : null;
+        SelectedShipId = system != null && Map.SelectedId is { } shipId
+                         && system.GetEntity(shipId) is { Kind: BodyKind.Ship, Relation: OwnerRelation.Owned } ? shipId : null;
+    }
+
+    /// <summary>The selected map object is one of the player's ships, so the panel offers its fleet.</summary>
+    [ObservableProperty]
+    [NotifyCanExecuteChangedFor(nameof(OpenFleetCommand))]
+    private int? _selectedShipId;
+
+    private bool CanOpenFleet() => SelectedShipId != null;
+
+    [RelayCommand(CanExecute = nameof(CanOpenFleet))]
+    private void OpenFleet()
+    {
+        if (Client is not { } client || SelectedShipId is not { } shipId) return;
+        SelectedTab = FleetsTab;
+        Fleets.ShowShip(shipId, client.Galaxy);
     }
 
     [RelayCommand]
@@ -238,6 +260,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         Map.Update(SelectedSystem is { } s ? client.Galaxy.GetSystem(s.SystemId) : null, client.Galaxy.Time.GameDateTime);
         if (SelectedTab == ColoniesTab) Colonies.Update(client.Galaxy);
         if (SelectedTab == PeopleTab) People.Update(client.Galaxy);
+        if (SelectedTab == FleetsTab) Fleets.Update(client.Galaxy);
         Inbox.Update(client.Galaxy); // every frame: the tab header counts what waits
     }
 

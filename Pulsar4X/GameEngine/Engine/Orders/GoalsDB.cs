@@ -186,7 +186,7 @@ public class Goal
     public string CargoId = "";
     /// <summary>Move goods. Empty for every other goal.</summary>
     public List<MoveGoodsLine> MoveGoodsLines = new();
-    /// <summary>Move goods. Load, then Unload. Other goals leave this at Load.</summary>
+    /// <summary>Move goods, and a deliver-shipment trip once it has loaded. Load, then Unload. Other goals leave this at Load.</summary>
     public MoveGoodsLeg MoveGoodsLeg = MoveGoodsLeg.Load;
     /// <summary>The unload transfer was handed off. The next wake completes the trip.</summary>
     public bool MoveGoodsUnloaded;
@@ -209,6 +209,11 @@ public class Goal
     /// seals the resources these cost (design cost x count) into the packages at order build. Never shipped as crates.
     /// </summary>
     public List<BootstrapCrateLine> BootstrapSiteBuilds = new();
+    /// <summary>
+    /// Fleet bootstrap of a founded colony. Settlers who move from the source once every crate is mounted, so
+    /// they never arrive to less support than the crates give. 0 for every other goal, and once they have moved.
+    /// </summary>
+    public long BootstrapSettlers;
     /// <summary>Where to buy, or the freight source. -1 until a route is committed.</summary>
     public int SourceEntityId = -1;
     /// <summary>Where to sell, or the freight destination. -1 until a route is committed.</summary>

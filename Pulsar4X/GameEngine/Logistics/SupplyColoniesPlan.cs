@@ -41,6 +41,29 @@ public class SupplyColoniesPlan : IGoalPlanner
             ClearTrip(goal);
         }
 
+        // Between trips, a ship low on fuel tops up at the colony with the most fuel to spare first.
+        // A refuel in hand is marked by the goal's target.
+        var fuel = FuelSituation.Observe(managedEntity);
+        if (goal.TargetEntityID > 0 || fuel.IsLow)
+        {
+            if (goal.TargetEntityID <= 0)
+            {
+                if (fuel.FuelType == null || FuelSource(managedEntity, fuel.FuelType.UniqueID) is not { } depot)
+                    return PlanResult.Continue(new List<EntityAction>(), "Low on fuel, and no colony can spare any");
+                goal.TargetEntityID = depot.Id;
+                ShipLogBook.Append(managedEntity, atDateTime, ShipLogKind.Own, $"Supply: refuelling at {depot.GetName(managedEntity.FactionOwnerID)}.");
+            }
+            var refuel = new RefuelShipPlanner().PlanActions(managedEntity, goal);
+            if (refuel.Status == GoalStatus.Active)
+                return refuel;
+            goal.TargetEntityID = -1;
+            if (refuel.Status == GoalStatus.Failed)
+            {
+                ShipLogBook.Append(managedEntity, atDateTime, ShipLogKind.Own, $"Supply: refuel failed: {refuel.Message}.");
+                return PlanResult.Continue(new List<EntityAction>(), "Refuel failed: " + refuel.Message);
+            }
+        }
+
         if (!TryChooseTrip(managedEntity, out var source, out var dest, out var lines, out var why))
             return PlanResult.Continue(new List<EntityAction>(), "Nothing needed");
 
@@ -60,6 +83,16 @@ public class SupplyColoniesPlan : IGoalPlanner
         }
         return first;
     }
+
+    /// <summary>The faction's colony in the ship's system with the most of this fuel to spare.</summary>
+    static Entity? FuelSource(Entity ship, string fuelId)
+        => ship.Manager?.GetAllEntitiesWithDataBlob<ColonyInfoDB>()
+            .Where(c => c.FactionOwnerID == ship.FactionOwnerID)
+            .Select(c => (colony: c, spare: ColonyAdministration.Spare(c, fuelId)))
+            .Where(c => c.spare > 0)
+            .OrderByDescending(c => c.spare)
+            .Select(c => c.colony)
+            .FirstOrDefault();
 
     static void ClearTrip(Goal goal)
     {

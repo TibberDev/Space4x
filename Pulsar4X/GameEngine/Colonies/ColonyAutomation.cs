@@ -374,9 +374,20 @@ public static class ColonyAdministration
             short_.Add((designId, design.Name, target, have, gap, lineId));
         }
 
+        // Specialization caps how many different items are in production at once, counting what is already
+        // queued: a specialist starts a new item only once the last one is done. An item already in production
+        // may be topped up without taking a new place.
         int focus = ProductionFocus(agent);
-        foreach (var item in short_.OrderByDescending(s => (double)s.gap / s.target).Take(focus))
+        var inProduction = automation.StockTargets.Keys.Where(id => RunMarketPlan.AlreadyQueued(colony, id) > 0).ToHashSet();
+        int places = focus == int.MaxValue ? int.MaxValue : Math.Max(0, focus - inProduction.Count);
+        foreach (var item in short_.OrderByDescending(s => (double)s.gap / s.target))
         {
+            if (!inProduction.Contains(item.designId))
+            {
+                if (places <= 0)
+                    continue;
+                places--;
+            }
             string style = focus == 1 ? " A specialist: one item at a time." : "";
             yield return new ColonySuggestion
             {

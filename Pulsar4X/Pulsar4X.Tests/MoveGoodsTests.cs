@@ -70,6 +70,26 @@ public class MoveGoodsTests
     }
 
     [Test]
+    public void Load_TopsUpTheTanksAtTheSource()
+    {
+        // The scene's drive burns iron, so the room the load leaves is tank room. A loaded ship used to leave
+        // with what it arrived with and could not get back (the vertical-slice play-test's Luna trip).
+        var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        var goal = scene.Goal(4);
+        scene.Source.GetDataBlob<CargoStorageDB>().TransferRangeDv_mps = 1e12;
+        var plan = new MoveGoodsPlan().Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+        Assert.That(plan.Actions.OfType<CargoTransferOrder>().Count(), Is.EqualTo(1), "the load");
+        Scene.Drain(scene.Source);
+
+        // Its own step: the agent drops queued steps when one succeeds. The load filled 4 of 10, so 6 to fill.
+        plan = new MoveGoodsPlan().Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+        Assert.That(plan.Message, Is.EqualTo("Refuelling"));
+        var topUp = plan.Actions.OfType<CargoTransferOrder>().Single();
+        Assert.That(topUp.Taken(scene.Iron.ID), Is.EqualTo(6));
+        Assert.That(goal.MoveGoodsLines.Single().Loaded, Is.EqualTo(4), "the fuel is not part of the delivery");
+    }
+
+    [Test]
     public void Cancel_ReturnsEscrowToTheSource()
     {
         var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
@@ -299,10 +319,26 @@ public class MoveGoodsTests
         construction.BuildQueue.Enqueue(job);
     }
 
+    /// <summary>The scene's ship burns iron for its reaction drive. Supply tests fly it on warp alone, so the refuel step stays out.</summary>
+    static void WarpOnly(Scene scene) => scene.Ship.RemoveDataBlob<NewtonThrustAbilityDB>();
+
+    [Test]
+    public void Supply_RefuelsFirst_WhenLow()
+    {
+        // The scene's reaction drive burns iron and the hold is empty: the tanks are low, and the source has iron to spare.
+        var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        var goal = new Goal(GoalType.SupplyColonies);
+        new SupplyColoniesPlan().Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
+        Assert.That(goal.TargetEntityID, Is.EqualTo(scene.Source.Id), "refuels at the colony with most to spare");
+        Assert.That(Scene.Log(scene.Ship).Last(), Does.StartWith("Supply: refuelling at"));
+        Assert.That(goal.MoveGoodsLines, Is.Empty, "no trip until the tanks are filled");
+    }
+
     [Test]
     public void Supply_CarriesWhatQueuedWorkLacks_FromTheColonyWithSpare()
     {
         var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        WarpOnly(scene);
         QueueWorkNeedingIron(scene, scene.Dest, 7);
         Assert.That(ColonyAdministration.Wants(scene.Dest), Is.EquivalentTo(new Dictionary<string, long> { ["iron"] = 7 }));
         scene.Source.GetDataBlob<CargoStorageDB>().TransferRangeDv_mps = 1e12;
@@ -333,6 +369,7 @@ public class MoveGoodsTests
     public void Supply_LeavesTheSourceWhatItsOwnWorkNeeds()
     {
         var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        WarpOnly(scene);
         QueueWorkNeedingIron(scene, scene.Dest, 9);
         QueueWorkNeedingIron(scene, scene.Source, 46);
         Assert.That(ColonyAdministration.Spare(scene.Source, "iron"), Is.EqualTo(4));
@@ -345,6 +382,7 @@ public class MoveGoodsTests
     public void Supply_WithNothingWanted_Waits()
     {
         var scene = Scene.Build(holdUnits: 10, sourceStock: 50, sell: 0);
+        WarpOnly(scene);
         var goal = new Goal(GoalType.SupplyColonies);
         var plan = new SupplyColoniesPlan().Plan(scene.Ship, goal, scene.Ship.StarSysDateTime);
         Assert.That(plan.Status, Is.EqualTo(GoalStatus.Active));

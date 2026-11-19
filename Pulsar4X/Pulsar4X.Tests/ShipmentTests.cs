@@ -364,6 +364,36 @@ public class ShipmentTests
     }
 
     [Test]
+    public void AFleetShip_TakesTheRestOnANewTrip()
+    {
+        // A fleet ship's trip ends with its load delivered, and the fleet hands the rest out as a new trip, often
+        // to the same ship. That new trip used to end at once, because the ship had carried part of the package
+        // before (the vertical-slice play-test's 16 Luna crates in a 12-crate hold).
+        var scene = Scene.Build(holdVolume: 0.0030, stockTitanium: 100);
+        Assert.That(scene.Seal(("iron", 10), ("titanium", 10), fee: 8m).Accepted, Is.True);
+        var shipment = ShipmentBook.At(scene.Seller).Single();
+        scene.InRange();
+        var ship = scene.CarrierShip;
+        var first = scene.GoalFor(shipment);
+        first.ParentGoalId = "fleet-order";
+
+        new DeliverShipmentPlan().Plan(ship, first, ship.StarSysDateTime);
+        Scene.Drain(scene.Seller);
+        new DeliverShipmentPlan().Plan(ship, first, ship.StarSysDateTime);
+        Scene.Drain(scene.Buyer);
+        var plan = new DeliverShipmentPlan().Plan(ship, first, ship.StarSysDateTime);
+        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Completed), plan.Message);
+        Assert.That(plan.Message, Is.EqualTo("trip delivered"));
+        Assert.That(shipment.Lines[1].Released, Is.False);
+
+        var second = scene.GoalFor(shipment);
+        second.ParentGoalId = "fleet-order";
+        plan = new DeliverShipmentPlan().Plan(ship, second, ship.StarSysDateTime);
+        Assert.That(plan.Status, Is.EqualTo(GoalStatus.Active), plan.Message);
+        Assert.That(shipment.Lines[1].Released, Is.True, "the second trip loads the titanium");
+    }
+
+    [Test]
     public void FullDestination_UnloadsWhatFits_AndTheShipKeepsTrying()
     {
         // The destination takes about 12 of the 30 units. The rest stays aboard and the fee waits.

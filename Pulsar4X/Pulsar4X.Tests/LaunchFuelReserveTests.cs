@@ -165,7 +165,10 @@ public class LaunchFuelReserveTests
         Assert.That(sol.GetAllEntitiesWithDataBlob<ShipInfoDB>().Count, Is.EqualTo(ships + 1), "the launch goes");
         Assert.That(Stock(earth, hydrogen), Is.GreaterThanOrEqualTo(reserve));
         Assert.That(Stock(earth, hydrogen), Is.EqualTo(reserve + 500).Within(2));
-        Assert.That(Stock(earth, hydrocarbons), Is.EqualTo(hydrocarbonsBefore));
+        // The new ship's tanks are filled with its engine fuel at launch; nothing else moves.
+        var launched = sol.GetAllEntitiesWithDataBlob<ShipInfoDB>().OrderBy(e => e.Id).Last();
+        long aboard = launched.GetDataBlob<CargoStorageDB>().GetUnitsStored(hydrocarbons, false);
+        Assert.That(Stock(earth, hydrocarbons), Is.EqualTo(hydrocarbonsBefore - aboard));
     }
 
     [Test]

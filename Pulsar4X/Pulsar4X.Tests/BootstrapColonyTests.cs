@@ -524,10 +524,12 @@ public class BootstrapColonyTests
         Assert.That(result.Accepted, Is.True, result.RejectionReason);
         var colony = ColonyOn(scene, body);
         Assert.That(colony, Is.Not.Null);
-        Assert.That(colony!.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(1000));
-        Assert.That(scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(9000), "the settlers come from the source");
+        // The settlers wait at the source until the crates are mounted.
+        Assert.That(colony!.GetDataBlob<ColonyInfoDB>().Population.Values.Sum(), Is.EqualTo(0));
+        Assert.That(scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(10_000));
         var goal = fleet.GetDataBlob<GoalsDB>().ActiveGoal!;
         Assert.That(goal.Type, Is.EqualTo(GoalType.FleetBootstrap));
+        Assert.That(goal.BootstrapSettlers, Is.EqualTo(1000));
         Assert.That(goal.DestEntityId, Is.EqualTo(colony.Id));
         Assert.That(goal.BootstrapSiteBuilds.Select(b => b.DesignId), Does.Contain(CityHall), "the City Hall's resources go too");
     }
@@ -848,6 +850,44 @@ public class BootstrapColonyTests
         Assert.That(result.RejectionReason, Does.Contain("Neither the colony nor a ship's Construction Bay can mount crates"));
         Assert.That(ShipmentBook.At(scene.Source), Is.Empty);
         Assert.That(BootstrapColonyPlan.CratesOf(scene.Source, Infra), Has.Count.EqualTo(1));
+    }
+
+    [Test]
+    public void FleetBootstrap_SettlersMove_OnceTheCratesAreMounted()
+    {
+        // Settlers who arrived with the order were over the colony's support until the crates were up, and the
+        // population pass took them all (the vertical-slice play-test's Luna).
+        var scene = Build(crates: 1);
+        var species = SpeciesFactory.CreateFromBlueprint(scene.System, Store.Species["species-human"]);
+        species.FactionOwnerID = scene.Faction.Id;
+        scene.Info.Species.Add(species);
+        scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id] = 10_000;
+        var (fleet, goal, result) = Order(scene);
+        Assert.That(result.Accepted, Is.True, result.RejectionReason);
+        goal.BootstrapSettlers = 1000;
+        var trip = ShipTrip(scene.Ship);
+
+        var plan = new BootstrapColonyPlan().Plan(scene.Ship, trip, Now(scene));
+        Drain(scene.Source);
+        plan = new BootstrapColonyPlan().Plan(scene.Ship, trip, Now(scene));
+        var mount = plan.Actions.OfType<MountFromHoldAction>().Single();
+        mount.ParentGoalId = trip.Id;
+        scene.Ship.GetDataBlob<ActionQueueDB>().Enqueue(mount);
+        Assert.That(mount.IsValidCommand(Game), Is.True);
+        mount.Execute(Now(scene));
+
+        PlanFleet(fleet, goal, scene);
+        Assert.That(scene.Dest.GetDataBlob<ColonyInfoDB>().Population.GetValueOrDefault(species.Id), Is.EqualTo(0),
+            "nobody moves while the crate waits to be built");
+        Assert.That(goal.BootstrapSettlers, Is.EqualTo(1000));
+
+        new LocalConstructionProcessor().ProcessEntity(scene.Ship, 0);
+        scene.Ship.GetDataBlob<ActionQueueDB>().ActionList.Remove(mount);
+        trip.Status = GoalStatus.Completed;
+        PlanFleet(fleet, goal, scene);
+        Assert.That(scene.Dest.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(1000));
+        Assert.That(scene.Source.GetDataBlob<ColonyInfoDB>().Population[species.Id], Is.EqualTo(9000));
+        Assert.That(goal.BootstrapSettlers, Is.EqualTo(0), "they move once");
     }
 
     [Test]

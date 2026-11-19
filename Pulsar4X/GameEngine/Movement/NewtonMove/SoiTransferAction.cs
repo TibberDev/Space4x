@@ -41,7 +41,7 @@ public class SoiTransferAction : EntityAction
     public double ArrivalApoapsis { get; private set; }
 
     // Append only. Newtonsoft stores the integer, and an old save is Depart, Coast, or Capture.
-    enum Phase { Depart, Coast, Capture, Escape, Cruise, Correct, Approach }
+    enum Phase { Depart, Coast, Capture, Escape, Cruise, Correct, Approach, Trim }
 
     [JsonProperty]
     Phase _phase = Phase.Depart;
@@ -99,6 +99,10 @@ public class SoiTransferAction : EntityAction
 
     [JsonProperty]
     string _departParentName = "";
+
+    /// <summary>The arrival periapsis has been checked once on entering the target's sphere.</summary>
+    [JsonProperty]
+    bool _trimChecked;
 
     /// <summary>
     /// A porkchop cell chosen in the nav window. Absent on a goal, which scans for the cheapest window.
@@ -203,6 +207,8 @@ public class SoiTransferAction : EntityAction
             TryApproach(atDateTime);
         if (_phase == Phase.Coast && !_isFinished)
             TryCoast(atDateTime);
+        if (_phase == Phase.Trim && !_isFinished)
+            TryTrim(atDateTime);
         if (_phase == Phase.Capture && !_isFinished)
             TryCapture(atDateTime);
         UpdateDetailString();
@@ -641,6 +647,15 @@ public class SoiTransferAction : EntityAction
         if (!_entityCommanding.TryGetDataBlob<OrbitDB>(out var orbit) || orbit.Parent == null)
             return;
 
+        if (!_trimChecked)
+        {
+            _trimChecked = true;
+            if (TryStartTrim(orbit, at))
+                return;
+            if (_isFinished)
+                return;
+        }
+
         if (!TryPeriapsis(orbit, at, out DateTime peri))
         {
             Fail("Missed the encounter with " + TargetName());
@@ -750,6 +765,114 @@ public class SoiTransferAction : EntityAction
         }
         Wake(at.AddSeconds(Math.Clamp(seconds, 5, 86400)));
     }
+
+    /// <summary>
+    /// On entering the target's sphere, a periapsis that would skim or hit the body is raised to the
+    /// planned arrival radius by one burn here, far out, where turning the approach costs little.
+    /// The capture burn happens at the periapsis, so without this the ship circularises inside the body.
+    /// True when a burn was started.
+    /// </summary>
+    bool TryStartTrim(OrbitDB orbit, DateTime at)
+    {
+        var parent = orbit.Parent;
+        if (parent == null || !parent.TryGetDataBlob<MassVolumeDB>(out var body))
+            return false;
+        if (orbit.Periapsis >= body.RadiusInM * MinimumPeriapsisOverRadius)
+            return false;
+
+        var state = StateAt(orbit, at);
+        Vector3 pos = state.pos;
+        Vector3 vel = state.vel;
+        double r = pos.Length();
+        double v = vel.Length();
+        if (!(r > 1) || !(v > 0) || Vector3.Dot(pos, vel) >= 0)
+            return false;
+
+        double rp = ArrivalPeriapsis > 0 ? ArrivalPeriapsis : OrbitMath.LowOrbitRadius(parent);
+        if (rp >= r)
+            return false;
+
+        // Same speed, so the same energy; turn the velocity in the approach plane until the
+        // angular momentum matches a periapsis of rp.
+        double mu = OrbitMath.SGP(parent, _entityCommanding);
+        double energy = v * v / 2.0 - mu / r;
+        double vp = Math.Sqrt(2.0 * (energy + mu / rp));
+        double sin = rp * vp / (r * v);
+        if (!double.IsFinite(sin) || sin >= 1)
+            return false;
+        double cos = Math.Sqrt(1.0 - sin * sin);
+
+        Vector3 h = Vector3.Cross(pos, vel);
+        Vector3 across = h.Length() > 1
+            ? Vector3.Normalise(Vector3.Cross(h, pos))
+            : Vector3.Normalise(Vector3.Cross(new Vector3(0, 0, 1), pos));
+        if (across.Length() < 0.5)
+            across = Vector3.Normalise(Vector3.Cross(new Vector3(0, 1, 0), pos));
+        Vector3 inward = Vector3.Normalise(pos) * -1;
+        Vector3 aimed = (inward * cos + across * sin) * v;
+
+        var startKE = OrbitMath.KeplerFromPositionAndVelocity(mu, pos, vel, at);
+        var targetKE = OrbitMath.KeplerFromPositionAndVelocity(mu, pos, aimed, at);
+        if (!double.IsFinite(targetKE.SemiMajorAxis))
+            return false;
+
+        try
+        {
+            _db = new NewtonSimpleMoveDB(parent, startKE, targetKE, at);
+        }
+        catch (Exception ex) when (ex is not OutOfMemoryException)
+        {
+            _db = null;
+            return false;
+        }
+
+        _entityCommanding.SetDataBlob(_db);
+        NewtonSimpleProcessor.ProcessEntity(_entityCommanding, at);
+        if (_db.IsFailed)
+        {
+            Fail("not enough ΔV");
+            _isFinished = true;
+            return false;
+        }
+        double dv = (aimed - vel).Length();
+        NoteBurn(at, "Periapsis correction", dv);
+        _phase = Phase.Trim;
+        if (_db.IsComplete)
+        {
+            // The finished burn set a new orbit. Capture reads it on the next wake.
+            _db = null;
+            _phase = Phase.Capture;
+            Wake(at.AddSeconds(5));
+            return true;
+        }
+        double seconds = 30;
+        if (_entityCommanding.TryGetDataBlob<NewtonThrustAbilityDB>(out var thrust)
+            && thrust.FuelBurnRate > 0
+            && _entityCommanding.TryGetDataBlob<MassVolumeDB>(out var mass))
+        {
+            double fuel = OrbitMath.TsiolkovskyFuelUse(mass.MassTotal, thrust.ExhaustVelocity, dv);
+            seconds = fuel / thrust.FuelBurnRate + 5;
+        }
+        Wake(at.AddSeconds(Math.Clamp(seconds, 5, 86400)));
+        return true;
+    }
+
+    void TryTrim(DateTime at)
+    {
+        if (_db != null && !_db.IsComplete && !_db.IsFailed)
+            return;
+        if (_db != null && _db.IsFailed)
+        {
+            Fail("not enough ΔV");
+            _isFinished = true;
+            return;
+        }
+        _db = null;
+        _phase = Phase.Capture;
+    }
+
+    /// <summary>An arrival periapsis under this many body radii is raised before the capture.</summary>
+    const double MinimumPeriapsisOverRadius = 1.05;
 
     static bool TryPeriapsis(OrbitDB orbit, DateTime at, out DateTime peri)
     {

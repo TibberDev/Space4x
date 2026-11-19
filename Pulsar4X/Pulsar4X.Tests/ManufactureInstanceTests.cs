@@ -72,6 +72,29 @@ public class ManufactureInstanceTests
     }
 
     [Test]
+    public void Assembly_TakesTheFactoryMadeParts()
+    {
+        // A ship or part built from parts: the factory stored each part as its own instance, under the
+        // instance's id. The vertical-slice play-test found a yard that never took them.
+        var world = NewSystem();
+        var colony = Colony(world, withOffice: false);
+        var design = FactoryDesign();
+        world.Info.InternalComponentDesigns[design.UniqueID] = design; // a faction's own part design, as a ship's are
+        var job = new IndustryJob(design);
+        job.InitialiseJob(2, false);
+        colony.GetDataBlob<IndustryAbilityDB>().ProductionLines[LineId].Jobs.Add(job);
+        Complete(colony, design, job);
+        Complete(colony, design, job);
+        Assert.That(StoredInstances(colony), Has.Count.EqualTo(2));
+
+        IDictionary<string, long> need = new Dictionary<string, long> { [design.UniqueID] = 2 };
+        IndustryTools.ConsumeResources(colony.GetDataBlob<CargoStorageDB>(), ref need);
+
+        Assert.That(need[design.UniqueID], Is.Zero);
+        Assert.That(StoredInstances(colony), Is.Empty);
+    }
+
+    [Test]
     public void CheckedBox_OnAColonyWithAnOffice_EnqueuesAMountAndDoesNotInstall()
     {
         var world = NewSystem();

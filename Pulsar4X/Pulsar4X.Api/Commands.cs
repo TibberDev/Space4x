@@ -276,6 +276,12 @@ public sealed record DetachShipCommand(int TargetEntityId) : GameCommand(TargetE
 public sealed record SetFlagshipCommand(int TargetEntityId, int ShipId) : GameCommand(TargetEntityId);
 
 /// <summary>
+/// Put a ship that is in no fleet (a newly launched one, say) into a new fleet of its own, as its flagship.
+/// Targets the ship.
+/// </summary>
+public sealed record FormFleetCommand(int TargetEntityId) : GameCommand(TargetEntityId);
+
+/// <summary>
 /// Seat a navy officer as this ship's captain, or clear the chair when <see cref="CommanderId"/>
 /// is negative. Targets the ship. The fleet commander is the flagship's captain, so the fleet
 /// UI sends this against the flagship. One officer, one ship: a person already captaining

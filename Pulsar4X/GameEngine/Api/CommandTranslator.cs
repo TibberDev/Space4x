@@ -84,6 +84,7 @@ namespace Pulsar4X.Engine.Api
                 [typeof(ReassignShipCommand)] = TranslateReassignShip,
                 [typeof(DetachShipCommand)] = TranslateDetachShip,
                 [typeof(SetFlagshipCommand)] = TranslateSetFlagship,
+                [typeof(FormFleetCommand)] = TranslateFormFleet,
                 [typeof(AssignCaptainCommand)] = TranslateAssignCaptain,
                 [typeof(AssignAdministratorCommand)] = TranslateAssignAdministrator,
                 [typeof(SetColonyAutomationCommand)] = TranslateSetColonyAutomation,
@@ -546,8 +547,9 @@ namespace Pulsar4X.Engine.Api
         }
 
         /// <summary>
-        /// Settle the colony, then hand the fleet a Bootstrap order with the default crates and a City Hall's
-        /// resources. When the Bootstrap order is refused, the new colony is removed again and nobody moves.
+        /// Set up the colony, then hand the fleet a Bootstrap order with the default crates and a City Hall's
+        /// resources; the settlers follow once the crates are mounted. When the Bootstrap order is refused, the
+        /// new colony is removed again and nobody moves.
         /// </summary>
         private CommandResult TranslateFoundColony(Entity faction, Entity commanded, GameCommand command)
         {
@@ -588,8 +590,11 @@ namespace Pulsar4X.Engine.Api
                 return result;
             }
 
-            sourceInfo.Population[species.Id] -= found.Settlers;
-            colony.GetDataBlob<ColonyInfoDB>().Population[species.Id] = found.Settlers;
+            // The settlers move once every crate is mounted (FleetBootstrapPlan), not now: arriving before the
+            // infrastructure is up, they were over the colony's support at its first population pass and all died.
+            var goals = commanded.GetDataBlob<GoalsDB>();
+            var bootstrap = new[] { goals.ActiveGoal, goals.GivenGoal }.First(g => g?.Id == result.CommandId)!;
+            bootstrap.BootstrapSettlers = found.Settlers;
             return result;
         }
 
@@ -1199,6 +1204,21 @@ namespace Pulsar4X.Engine.Api
             MessagePublisher.Instance.Publish(Message.Create(
                 MessageTypes.FleetReorganized, factionId: faction.Id));
             return CommandResult.Ok(Guid.NewGuid().ToString("N"));
+        }
+
+        private CommandResult TranslateFormFleet(Entity faction, Entity commanded, GameCommand command)
+        {
+            if (!commanded.HasDataBlob<ShipInfoDB>())
+                return CommandResult.Reject("Only a ship forms a fleet.");
+            var holder = FindHoldingFleet(faction, commanded);
+            if (holder != null && holder.Id != faction.Id)
+                return CommandResult.Reject("The ship is already in a fleet.");
+
+            var fleet = FleetFactory.Create(commanded.Manager, faction.Id, NameFactory.GetFleetName(_game));
+            var moved = TranslateReassignShip(faction, commanded, new ReassignShipCommand(commanded.Id, fleet.Id));
+            if (!moved.Accepted)
+                return moved;
+            return TranslateSetFlagship(faction, fleet, new SetFlagshipCommand(fleet.Id, commanded.Id));
         }
 
         private CommandResult TranslateSetFlagship(Entity faction, Entity commanded, GameCommand command)

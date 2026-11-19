@@ -186,6 +186,7 @@ namespace Pulsar4X.Ships
             var ship = ShipFactory.CreateShip(shipDesign, faction, position, planet, pad.ShipName);
             // Crew plan phase 3: crew come from the colony's pool (an NPC's population); short launches under-crewed.
             ShipCrew.BoardAtLaunch(ship, colonyEntity, colonyEntity.StarSysDateTime);
+            FuelAtLaunch(colonyEntity, ship);
             // Ships that exist at the new game are started by PostNewGameInitialization.
             // A later launch is not, so the battery update never gets its first appointment.
             if (ship.HasDataBlob<EnergyGenAbilityDB>())
@@ -302,11 +303,34 @@ namespace Pulsar4X.Ships
             var position = new Vector3(OrbitMath.LowOrbitRadius(planet), 0, 0);
             var ship = ShipFactory.CreateShip(shipDesign, faction, position, planet, hull.Name);
             ShipCrew.BoardAtLaunch(ship, colony, colony.StarSysDateTime);
+            FuelAtLaunch(colony, ship);
             if (ship.HasDataBlob<EnergyGenAbilityDB>())
                 EnergyGenProcessor.EnergyGen(ship, ship.Manager.ManagerSubpulses.NextSafeInterruptTime);
             if (faction.TryGetDataBlob<FleetDB>(out var fleetDB))
                 fleetDB.AddChild(ship);
             return true;
+        }
+
+        /// <summary>
+        /// A ship leaves the pad with its tanks filled from the colony's stock of its engine fuel, above the
+        /// power plants' runway reserve. A new ship used to launch with empty tanks and could not fly anywhere
+        /// (found by the vertical-slice play-test).
+        /// </summary>
+        internal static void FuelAtLaunch(Entity colony, Entity ship)
+        {
+            if (!ship.TryGetDataBlob<NewtonThrustAbilityDB>(out var thrust) || string.IsNullOrEmpty(thrust.FuelType)
+                || !ship.TryGetDataBlob<CargoStorageDB>(out var tanks)
+                || !colony.TryGetDataBlob<CargoStorageDB>(out var stock)
+                || !colony.GetFactionOwner.TryGetDataBlob<FactionInfoDB>(out var info)
+                || info.Data.CargoGoods.GetAny(thrust.FuelType) is not { } fuel)
+                return;
+            long spare = stock.GetUnitsStored(fuel, false) - ColonyPowerProcessor.FuelReserveUnits(colony, fuel.UniqueID);
+            long units = Math.Min(tanks.GetFreeUnitSpace(fuel), spare);
+            if (units <= 0)
+                return;
+            long added = tanks.AddCargoByUnit(fuel, units);
+            stock.RemoveCargoByUnit(fuel, added);
+            CargoTransferProcessor.UpdateMassFuelAndDeltaV(ship);
         }
 
         static bool HasFuel(Entity colony, long mass, LaunchPad pad, double targetRadius = 0)

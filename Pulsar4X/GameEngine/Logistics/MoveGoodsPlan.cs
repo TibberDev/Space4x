@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using GameEngine.Engine.Orders;
 using Pulsar4X.Colonies;
+using Pulsar4X.Energy;
 using Pulsar4X.Engine;
 using Pulsar4X.Extensions;
 using Pulsar4X.Fleets;
@@ -47,6 +48,12 @@ public class MoveGoodsPlan : IGoalPlanner
         if (goal.MoveGoodsLeg == MoveGoodsLeg.Load && goal.MoveGoodsLines.Exists(line => line.Loaded > 0))
             goal.MoveGoodsLeg = MoveGoodsLeg.Unload;
 
+        // Loaded and still at the source: fill the tanks there before the flight. Its own step, because
+        // the agent drops queued steps when one succeeds.
+        if (goal.MoveGoodsLeg == MoveGoodsLeg.Unload && MarketExchangeAction.InRange(managedEntity, source)
+            && TopUpFuel(managedEntity, source) is { } fuel)
+            return PlanResult.Continue(new List<EntityAction> { fuel }, "Refuelling");
+
         if (goal.MoveGoodsLeg == MoveGoodsLeg.Load)
             return PlanLoad(managedEntity, goal, source);
         return PlanUnload(managedEntity, goal, dest);
@@ -80,6 +87,35 @@ public class MoveGoodsPlan : IGoalPlanner
         }
 
         return PlanResult.Continue(new List<EntityAction> { primary }, "Loading");
+    }
+
+    /// <summary>
+    /// A ship loading at its own colony fills its tanks there too, from the colony's stock of its engine fuel
+    /// above the power plants' reserve, as a launch does. A loaded ship could otherwise reach the far end and
+    /// not get back (found by the vertical-slice play-test). Queues the colony's side; null when there is
+    /// nothing to take or no room.
+    /// </summary>
+    internal static CargoTransferOrder? TopUpFuel(Entity ship, Entity source)
+    {
+        if (source.FactionOwnerID != ship.FactionOwnerID
+            || !ship.TryGetDataBlob<NewtonThrustAbilityDB>(out var thrust) || string.IsNullOrEmpty(thrust.FuelType)
+            || !ship.TryGetDataBlob<CargoStorageDB>(out var tanks)
+            || !source.TryGetDataBlob<CargoStorageDB>(out var stock)
+            || RunMarketPlan.FactionOf(source)?.Data.CargoGoods.GetAny(thrust.FuelType) is not { } fuel)
+            return null;
+        long spare = stock.GetUnitsStored(fuel, false) - ColonyPowerProcessor.FuelReserveUnits(source, fuel.UniqueID);
+        long units = Math.Min(tanks.GetFreeUnitSpace(fuel), spare);
+        if (units <= 0)
+            return null;
+
+        var (primary, secondary) = CargoTransferOrder.CreateLoadPair(
+            ship.FactionOwnerID, ship, source, new List<(ICargoable item, long amount)> { (fuel, units) });
+        if (ship.Manager?.Game == null || !ship.Manager.Game.OrderHandler.HandleOrder(secondary) || primary.Taken(fuel.ID) <= 0)
+        {
+            primary.Stop(ship.StarSysDateTime);
+            return null;
+        }
+        return primary;
     }
 
     static PlanResult PlanUnload(Entity ship, Goal goal, Entity dest)

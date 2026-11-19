@@ -12,6 +12,7 @@
     "Pulsar4x.Scenario.WarpTechStart"
   ],
   "DataFiles": [
+    "bootstrapDefaults.json",
     "colonies.json",
     "ships.json"
   ],

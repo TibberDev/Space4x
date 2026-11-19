@@ -38,7 +38,32 @@ Everything is linked from [master-plan.md](master-plan.md): the work queue, the 
 
 2026-11-08. Escrow reserves units only. Delivery frees that volume once and subtracts the mass of the units that left. A sub-unit remainder no longer sticks in escrow. Passenger load and unload do not index a colony passenger store.
 
+### A ship that bootstraps Luna ends up inside Luna and cannot leave
+
+2026-11-18. The parent-to-moon transfer has no mid-course correction, and its approach periapsis came out at 1,722 km against Luna's 1,737 km surface; the capture burn then circularised there. `SoiTransferAction.TryStartTrim` now raises an approach periapsis under 1.05 body radii to the planned arrival radius with one burn on entering the target's sphere (3.76 m/s in the play-test). `SoiCaptureTests.EarthToLuna_FromALaunchOrbit_CapturesAboveTheSurface` passes.
+
+### A delivery trip leaves the source without topping up its tanks
+
+2026-11-18. A loaded ship still at its own source colony now fills its tanks there as its own step ("Refuelling"), from stock above the power plants' reserve (`MoveGoodsPlan.TopUpFuel`, used by `MoveGoodsPlan` and `DeliverShipmentPlan`). It must be its own step: the ship agent drops queued steps when one succeeds. `MoveGoodsTests.Load_TopsUpTheTanksAtTheSource` passes; in the play-test the ship reaches Luna with 8,957 m/s.
+
 ## Open
+
+### A founded colony's settlers all die at the first population pass
+
+Found by the vertical-slice play-test. Part fixed 2026-11-18: loaded moons took their temperature from their distance to their planet as if it were the star (`SystemBodyFactory`, both loader paths; now `OrbitAroundStar`), so Luna was about 1,130 °C with colony cost 36 and a 200-support crate held 5 people. Luna is now 18.8 °C, cost 2 (`EarlyTechStartTests.EarlyTech_LunaIsAsWarmAsEarthsDistanceFromTheSun`), and the early-tech first outpost carries 12 infrastructure crates (1,200 people at cost 2). Then: `FoundColonyCommand` founds the colony empty and the fleet Bootstrap moves the settlers once every crate is mounted (`Goal.BootstrapSettlers`, `BootstrapColonyTests.FleetBootstrap_SettlersMove_OnceTheCratesAreMounted`), and a fleet ship can take a second trip for the same package (`DeliverShipmentPlan`, `ShipmentTests.AFleetShip_TakesTheRestOnANewTrip`); the 16 Luna crates did not fit one 12-crate hold and the last 4 never came. Not yet checked in the play-test. Still open: `PopulationProcessor.GrowPopulation` (growth -50, `@todo`) takes a colony over its support straight to 0, and the admin's Infrastructure need reads `InfrastructureDB` (3,200 against 28), not population support, so a growing colony will hit the cap.
+
+### Bootstrap resources that need tank room cannot be unloaded at a new colony
+
+Found by the vertical-slice play-test. City Hall's materials include 5,000 units of a `fuel-storage` mineral (uranium or hydrogen). The Starship Cargo carries them in its fuel tanks, but the new Luna colony has only a 200 m3 `general-storage` store, so `DeliverShipmentPlan.PlanUnload` waits ("Waiting to unload") forever. The first-outpost package has no tank storage, and the fleet Bootstrap does not check that the destination can store every line it carries.
+
+### ApiCommanderTests.Commanders_are_pushed_on_connect_and_on_clock_advance is flaky
+
+2026-11-18, one failure in a full-suite run, passes alone. `received.Any(...)` (`API/ApiCommanderTests.cs` line 149) throws "Collection was modified": the subscription adds to the plain `List<GameEventEnvelope>` from the push thread while the test enumerates it. The test needs a lock or a concurrent collection, or to wait for the push before reading.
+
+### Background systems lose nine tenths of their daily industry
+
+`StarSystem.SetActivityStateInternal` sets `ManagerSubpulses.FrequencyMultiplier = 10` in Background, so a system nobody watches runs its daily hotloop processors every ten days. `IndustryProcessor` (`IndustryTools.ConstructStuff`) and `LocalConstructionProcessor` ignore `deltaSeconds` and add one day's points per run, so an unwatched colony makes a tenth of its output. Found by the vertical-slice play-test (`VerticalSlicePlaytest`, local): early-tech Earth in Background finished about one Prefab Construction Office a month on a 100-point line. A focused system (the client's `SetSystemFocus`) runs in Foreground and is fine. Other daily processors that apply a fixed day's work (power, research, population, mining) may share the problem. Fix: scale by elapsed days, or run a day per elapsed day.
+
 
 ### Phobos transfer completes when the departure burn finishes
 

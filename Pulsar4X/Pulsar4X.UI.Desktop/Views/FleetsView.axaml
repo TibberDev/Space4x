@@ -11,6 +11,23 @@
         <TextBlock DockPanel.Dock="Top" Classes="heading" Text="FLEETS" />
         <TextBlock DockPanel.Dock="Top" Classes="muted" Margin="12,0" TextWrapping="Wrap"
                    IsVisible="{Binding HasNoFleets}" Text="You have no fleets yet." />
+        <StackPanel DockPanel.Dock="Bottom" IsVisible="{Binding HasLooseShips}" Margin="0,0,0,8">
+          <TextBlock Classes="heading" Text="SHIPS WITHOUT A FLEET" />
+          <ItemsControl Name="LooseShipList" ItemsSource="{Binding LooseShips}" Margin="12,0">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="fl:ShipRow">
+                <Grid ColumnDefinitions="*,Auto" Margin="0,3">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Name}" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Design}" Classes="muted" FontSize="12" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Classes="small" Content="Form fleet" VerticalAlignment="Center"
+                          Command="{Binding $parent[ItemsControl].((fl:FleetsViewModel)DataContext).FormFleetCommand}" CommandParameter="{Binding}" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
         <ListBox Name="FleetList" ItemsSource="{Binding Fleets}" SelectedItem="{Binding SelectedFleet}" Background="Transparent">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="fl:FleetRow">
@@ -102,7 +119,7 @@
               <Separator Margin="0,4" />
               <TextBlock Classes="cardtitle" Text="Found a colony" />
               <TextBlock Classes="muted" FontSize="12" TextWrapping="Wrap"
-                         Text="Settles the target body with 1,000 people from the source, and carries the starter crates and a City Hall's materials there. Needs a ship with a construction bay, and the crates waiting at the source." />
+                         Text="Carries the starter crates and a City Hall's materials from the source to the target body. 1,000 people from the source follow once the crates are mounted. Needs a ship with a construction bay, and the crates waiting at the source." />
               <Grid ColumnDefinitions="80,*">
                 <TextBlock Text="Source" VerticalAlignment="Center" />
                 <ComboBox Name="SourcePicker" Grid.Column="1" HorizontalAlignment="Stretch"

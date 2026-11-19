@@ -118,6 +118,31 @@ public class SoiCaptureTests
     }
 
     [Test]
+    public void EarthToLuna_FromALaunchOrbit_CapturesAboveTheSurface()
+    {
+        // A launched ship circles Earth in the XY plane, not Luna's. With Luna where it is 120 days into
+        // the game (the vertical-slice play-test's departure), the approach periapsis came out at 1,722 km,
+        // under Luna's 1,737 km surface, and the capture burn circularised the ship there, inside Luna.
+        var now = _starship.StarSysDateTime;
+        double lunaMass = _luna.GetDataBlob<MassVolumeDB>().MassDry;
+        double earthMass = _earth.GetDataBlob<MassVolumeDB>().MassDry;
+        var moon = OrbitalMath.GetStateVectors(_luna.GetDataBlob<OrbitDB>().GetElements(), now.AddDays(120));
+        _luna.SetDataBlob(OrbitDB.FromVector(_earth, lunaMass, earthMass, moon.position, (Vector3)moon.velocity, now));
+        var ship = FuelledShip("Launched", _earth);
+        PlaceCircular(ship, _earth, new Vector3(0, 0, 1), new Vector3(1, 0, 0), OrbitMath.LowOrbitRadius(_earth));
+        SnapToWindow(ship, _luna, _earth);
+
+        var goal = OrderMove(ship, _luna);
+        Pulse(30);
+
+        Assert.That(ship.GetSOIParentEntity(), Is.EqualTo(_luna), Describe(ship, goal));
+        Assert.That(goal.Status, Is.EqualTo(GoalStatus.Completed), Describe(ship, goal));
+        double surface = _luna.GetDataBlob<MassVolumeDB>().RadiusInM;
+        Assert.That(ship.GetDataBlob<OrbitDB>().Periapsis, Is.GreaterThan(surface * 1.05), Describe(ship, goal));
+        Assert.That(LogText(ship), Does.Contain("Periapsis correction"), Describe(ship, goal));
+    }
+
+    [Test]
     public void LunaToEarth_CapturesWithinThirtyDays()
     {
         var ship = ShipInLowLunaOrbit("Return");

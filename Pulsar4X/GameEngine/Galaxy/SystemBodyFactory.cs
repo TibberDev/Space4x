@@ -144,7 +144,7 @@ namespace Pulsar4X.Galaxy
                 break;
             }
 
-            systemBodyInfoDB.BaseTemperature = (float)SystemBodyFactory.CalculateBaseTemperatureOfBody(sun, orbitDB);
+            systemBodyInfoDB.BaseTemperature = (float)SystemBodyFactory.CalculateBaseTemperatureOfBody(sun, OrbitAroundStar(sun, orbitDB));
 
             // Calculate day length from orbital period if not provided in the blueprint.
             if (systemBodyInfoDB.LengthOfDay == TimeSpan.Zero)
@@ -369,7 +369,7 @@ namespace Pulsar4X.Galaxy
                 break;
             }
 
-            systemBodyInfoDB.BaseTemperature = (float)SystemBodyFactory.CalculateBaseTemperatureOfBody(sun, orbitDB);
+            systemBodyInfoDB.BaseTemperature = (float)SystemBodyFactory.CalculateBaseTemperatureOfBody(sun, OrbitAroundStar(sun, orbitDB));
 
             // Calculate day length from orbital period if not provided in the JSON data.
             if (systemBodyInfoDB.LengthOfDay == TimeSpan.Zero)
@@ -1388,6 +1388,18 @@ namespace Pulsar4X.Galaxy
             double temp = Temperature.ToKelvin(starInfo.Temperature);
             temp = temp * Math.Sqrt(starMVDB.RadiusInM / (2 * distanceFromStar));
             return Temperature.ToCelsius(temp);
+        }
+
+        /// <summary>
+        /// The orbit that carries this body around the star: its own for a planet, its planet's for a moon.
+        /// Loaded moons used to take their temperature from their distance to the planet, as if it were the
+        /// star (Luna came out at about 1,130 °C and a colony cost of 36).
+        /// </summary>
+        static OrbitDB OrbitAroundStar(Entity star, OrbitDB orbit)
+        {
+            while (orbit.Parent != null && orbit.Parent.Id != star.Id && orbit.Parent.TryGetDataBlob<OrbitDB>(out var parentOrbit))
+                orbit = parentOrbit;
+            return orbit;
         }
 
         /// <summary>

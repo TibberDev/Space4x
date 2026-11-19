@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Pulsar4X.Components;
 using Pulsar4X.Datablobs;
 using Pulsar4X.Interfaces;
 using Pulsar4X.Extensions;
@@ -301,6 +302,20 @@ namespace Pulsar4X.Industry
                 {
                     long used = fromCargo.RemoveCargoByUnit(cargoItem, amountUsedThisTick);
                     toUse[kvp.Key] -= used;
+                }
+
+                // A part the factory finished sits in cargo as its own ComponentInstance, under the
+                // instance's id rather than the design's. Assembly takes those too.
+                if (toUse[kvp.Key] > 0 && cargoItem is ComponentDesign wanted
+                    && fromCargo.TypeStores.TryGetValue(cargoTypeID, out var store))
+                {
+                    var parts = store.Cargoables.Values
+                        .OfType<ComponentInstance>()
+                        .Where(part => part.Design.UniqueID == wanted.UniqueID)
+                        .Take((int)Math.Min(toUse[kvp.Key], int.MaxValue))
+                        .ToList();
+                    foreach (var part in parts)
+                        toUse[kvp.Key] -= fromCargo.RemoveCargoByUnit(part, 1);
                 }
             }
         }

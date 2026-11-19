@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using GameEngine.Engine.Orders;
 using Pulsar4X.Api;
+using Pulsar4X.Colonies;
 using Pulsar4X.Components;
 using Pulsar4X.Engine;
+using Pulsar4X.Extensions;
+using Pulsar4X.Factions;
 using Pulsar4X.Fleets;
 using Pulsar4X.Industry;
 using Pulsar4X.Industry.Orders;
@@ -59,6 +62,22 @@ public class FleetBootstrapPlan : IGoalPlanner
                 continue;
             }
             live.Add(package);
+        }
+
+        // A founded colony's settlers move once every crate is mounted.
+        if (goal.BootstrapSettlers > 0 && !live.Any(BootstrapPackage.IsCratePackage)
+            && fleetEntity.GetFactionOwner.TryGetDataBlob<FactionInfoDB>(out var faction) && faction.Species.Count > 0)
+        {
+            int speciesId = faction.Species[0].Id;
+            var from = source.GetDataBlob<ColonyInfoDB>().Population;
+            var to = dest.GetDataBlob<ColonyInfoDB>().Population;
+            long have = from.GetValueOrDefault(speciesId);
+            long moving = Math.Min(goal.BootstrapSettlers, Math.Max(0, have - 1));
+            from[speciesId] = have - moving;
+            to[speciesId] = to.GetValueOrDefault(speciesId) + moving;
+            goal.BootstrapSettlers = 0;
+            ShipLogBook.Append(dest, atDateTime, ShipLogKind.Own,
+                $"{moving:N0} settlers arrived from {source.GetName(fleetEntity.FactionOwnerID)}: the crates are mounted.");
         }
 
         if (live.Count == 0)

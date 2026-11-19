@@ -195,7 +195,11 @@ public class LaunchFuelChoiceTests
 
         Assert.That(Ships(), Is.EqualTo(ships + 1), "Hermes launches from the hydrogen pad");
         Assert.That(Stock("hydrogen"), Is.EqualTo(hydrogen - cost).Within(1));
-        Assert.That(Stock("hydrocarbons"), Is.EqualTo(rp1), "other fuels untouched");
+        // The new ship's tanks are filled from the colony at launch: that is the only Hydrocarbons that moves.
+        var hermes = _sol.GetAllEntitiesWithDataBlob<ShipInfoDB>().OrderBy(e => e.Id).Last();
+        var hydrocarbons = _player.GetDataBlob<FactionInfoDB>().Data.CargoGoods.GetAny("hydrocarbons")!;
+        long aboard = hermes.GetDataBlob<CargoStorageDB>().GetUnitsStored(hydrocarbons, false);
+        Assert.That(Stock("hydrocarbons"), Is.EqualTo(rp1 - aboard), "other fuels untouched, but for the new ship's tanks");
         Assert.That(Stock("uranium"), Is.EqualTo(fissile));
     }
 

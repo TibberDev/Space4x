@@ -20,6 +20,7 @@ using Pulsar4X.Components;
 using Pulsar4X.Modding;
 using Pulsar4X.Movement;
 using Pulsar4X.Names;
+using Pulsar4X.People;
 using Pulsar4X.Ships;
 using Pulsar4X.Logistics;
 using Pulsar4X.Storage;
@@ -766,5 +767,22 @@ public class EarlyTechStartTests
         Assert.That(
             colony.GetDataBlob<ComponentInstancesDB>().GetPopulationSupportValue(luna),
             Is.GreaterThanOrEqualTo(200));
+    }
+
+    [Test]
+    public void EarlyTech_LunaIsAsWarmAsEarthsDistanceFromTheSun()
+    {
+        // A moon's temperature follows its planet's distance from the star. Luna used to take its 384,400 km
+        // from Earth as its distance from the Sun: about 1,130 °C and a colony cost of 36, so a prefab
+        // infrastructure crate supported 5 people and a founded colony's settlers all died.
+        var (game, faction) = StartGameLikeTheMenu(EarlyTech);
+        var sol = game.Systems.Single(system => system.ID == "system-sol");
+        var luna = NameLookup.GetFirstEntityWithName(sol, "Luna");
+        double temperature = luna.GetDataBlob<SystemBodyInfoDB>().BaseTemperature;
+        Assert.That(temperature, Is.InRange(-60.0, 40.0));
+
+        var species = faction.GetDataBlob<FactionInfoDB>().Species.First().GetDataBlob<SpeciesDB>();
+        TestContext.Out.WriteLine($"Luna {temperature:F1} °C, colony cost {species.ColonyCost(luna):F2}");
+        Assert.That(species.ColonyCost(luna), Is.LessThanOrEqualTo(3));
     }
 }

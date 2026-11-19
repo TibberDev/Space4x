@@ -194,10 +194,10 @@ public class ColonyPowerTests
     [Test]
     public void LifeSupport_HostilityIsCappedAtMaxColonyCost()
     {
-        var luna = NameLookup.GetFirstEntityWithName(_sol, "Luna");
-        Assert.That(_species.GetDataBlob<SpeciesDB>().ColonyCost(luna), Is.GreaterThan(SpeciesDBExtensions.MAX_COST),
-            "raw colony cost runs past the cap on Luna");
-        var colony = ColonyFactory.CreateColony(_player, _species, luna, 1000);
+        var venus = NameLookup.GetFirstEntityWithName(_sol, "Venus");
+        Assert.That(_species.GetDataBlob<SpeciesDB>().ColonyCost(venus), Is.GreaterThan(SpeciesDBExtensions.MAX_COST),
+            "raw colony cost runs past the cap on Venus");
+        var colony = ColonyFactory.CreateColony(_player, _species, venus, 1000);
 
         double perColonist = ColonyPowerProcessor.LifeSupportSealed_kWPerColonist
                              + ColonyPowerProcessor.LifeSupportHostile_kWPerColonistPerCost * SpeciesDBExtensions.MAX_COST;

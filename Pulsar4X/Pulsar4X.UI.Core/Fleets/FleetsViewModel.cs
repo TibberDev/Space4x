@@ -49,6 +49,11 @@ public sealed partial class FleetsViewModel : ObservableObject
     public ObservableCollection<OfficerOption> Officers { get; } = new();
     public ObservableCollection<string> Orders { get; } = new();
 
+    /// <summary>Ships in no fleet, such as one just launched. Form a fleet to give them orders.</summary>
+    public ObservableCollection<ShipRow> LooseShips { get; } = new();
+
+    [ObservableProperty] private bool _hasLooseShips;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasFleet))]
     [NotifyCanExecuteChangedFor(nameof(MoveCommand), nameof(SurveyCommand), nameof(FoundColonyCommand), nameof(CancelCommand))]
@@ -99,6 +104,13 @@ public sealed partial class FleetsViewModel : ObservableObject
         _updating = true;
         try
         {
+            var loose = galaxy.UnattachedShips
+                .Select(s => new ShipRow(s.Id, s.Name, s.DesignName, s.CommanderName ?? "No captain", GoalLine(s.Goal), s.CommanderId != null))
+                .OrderBy(s => s.Name, StringComparer.CurrentCulture)
+                .ToList();
+            CollectionSync.Sync(LooseShips, loose, s => s.Id);
+            HasLooseShips = LooseShips.Count > 0;
+
             var all = Flatten(galaxy.Fleets, 0).ToList();
             var rows = all.Select(f => new FleetRow(f.fleet.Id, f.fleet.Name,
                     f.fleet.OrbitingName ?? f.fleet.SystemName ?? "In transit",
@@ -222,6 +234,10 @@ public sealed partial class FleetsViewModel : ObservableObject
     [RelayCommand(CanExecute = nameof(CanSupply))]
     private Task Supply()
         => Sink.SendAsync(new SupplyColoniesCommand(SelectedShip!.Id), $"{SelectedShip.Name} will keep your colonies supplied.");
+
+    [RelayCommand]
+    private Task FormFleet(ShipRow ship)
+        => Sink.SendAsync(new FormFleetCommand(ship.Id), $"{ship.Name} now leads a fleet of its own.");
 
     private bool CanAssignCaptain() => SelectedShip != null && SelectedOfficer != null;
 

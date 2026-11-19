@@ -75,15 +75,20 @@ public class DeliverShipmentPlan : IGoalPlanner
         }
 
         var aboard = Aboard(ship, hold, shipment);
+        // Loaded and still at the source: fill the tanks there before the flight. Its own step, because
+        // the agent drops queued steps when one succeeds.
+        if (aboard.Count > 0 && MarketExchangeAction.InRange(ship, source)
+            && MoveGoodsPlan.TopUpFuel(ship, source) is { } fuel)
+            return PlanResult.Continue(new List<EntityAction> { fuel }, "Refuelling");
         if (aboard.Count > 0)
             return PlanUnload(ship, goal, dest, aboard);
 
         bool open = shipment.Lines.Any(line => !line.Released);
-        bool carriedBefore = shipment.Lines.Any(line => line.Released && line.CarrierId == ship.Id);
         if (!open)
             return PlanResult.Done("nothing left to load");
-        // A fleet ship delivers its own load and is done. The fleet hands the rest to a free ship.
-        if (child && carriedBefore)
+        // A fleet ship delivers this trip's load and is done. The fleet hands the rest to a free ship, which may be
+        // the same one on a new trip: a package bigger than one hold used to end every later trip at once.
+        if (child && goal.MoveGoodsLeg == MoveGoodsLeg.Unload)
             return PlanResult.Done("trip delivered");
 
         return PlanLoad(ship, goal, source, shipment);
@@ -155,6 +160,7 @@ public class DeliverShipmentPlan : IGoalPlanner
             return PlanResult.Fail(queued ? "no room aboard" : "nothing to load");
         }
 
+        goal.MoveGoodsLeg = MoveGoodsLeg.Unload;
         return PlanResult.Continue(new List<EntityAction> { primary }, "Loading");
     }
 

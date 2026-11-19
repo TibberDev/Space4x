@@ -209,6 +209,27 @@ public class ColonyAutomationTests
     }
 
     [Test]
+    public void ASpecialist_StartsANewItemOnlyOnceTheLastIsDone()
+    {
+        var info = _player.GetDataBlob<FactionInfoDB>();
+        var industry = _earth.GetDataBlob<IndustryAbilityDB>();
+        var makeable = info.IndustryDesigns.Values
+            .Where(d => !string.IsNullOrEmpty(d.IndustryTypeID)
+                        && industry.ProductionLines.Values.Any(l => l.IndustryTypeRates.ContainsKey(d.IndustryTypeID)))
+            .Take(2).ToList();
+        foreach (var design in makeable)
+            Automation.StockTargets[design.UniqueID] = 5;
+        Automation.Construction = AutomationLevel.Manual;
+        Automation.Production = AutomationLevel.Auto;
+        SeatAdministrator(specialization: 1.4f);
+
+        Assert.That(ColonyAdministration.Review(_earth, Now), Is.EqualTo(1));
+        Assert.That(ColonyAdministration.Review(_earth, Now), Is.Zero, "the first item is still in production");
+        int queuedItems = makeable.Count(d => Pulsar4X.Logistics.RunMarketPlan.AlreadyQueued(_earth, d.UniqueID) > 0);
+        Assert.That(queuedItems, Is.EqualTo(1));
+    }
+
+    [Test]
     public void ConstructionSkill_SetsHowOftenTheyReview()
     {
         var weekly = new CommanderDB("New", 1, CommanderTypes.Civilian);
